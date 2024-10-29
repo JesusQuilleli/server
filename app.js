@@ -15,14 +15,23 @@ import { dirname } from "path";
 dotenv.config();
 
 //INFORMACION NECESARIA PARA CONECTARNOS A LA BASE DE DATOS CONFIGURACION
-const pool = mysql
-  .createPool({
-    host: process.env.MYSQL_HOST,
-    user: process.env.MYSQL_USER,
-    password: process.env.MYSQL_PASSWORD,
-    database: process.env.MYSQL_DATABASE,
+const pool = mysql.createPool({
+    host: 'mysqldb',
+    user: 'root',
+    password: 'devjesus',
+    database: 'store_database',
+    port: 3306
   })
   .promise();
+
+  pool.getConnection()
+  .then((connection) => {
+    console.log("Conexión exitosa a la base de datos.");
+  })
+  .catch((error) => {
+    console.error("Error al conectar con la base de datos:", error);
+  });
+
 
   //CONSULTA MYSQL EJEMPLO
 export async function getRoles(id) {
@@ -174,7 +183,7 @@ export async function eliminarProducto(id) {
 ///////////////////////////////SERVIDOR////////////////////////////////////////////////////
 
 //PUERTO DESDE EL .ENV
-const PORT = process.env.PORT;
+const PORT = process.env.MYSQLDB_PORT_NODE;
 
 //DECLARACION DE EXPRESS PARA MANEJO DE PETICIONES HTTPS
 const app = express();
@@ -188,6 +197,12 @@ const __dirname = dirname(__filename);
 app.use(fileUpload());
 app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+
+app.get("/ping", async (req, res) => {
+  const result = await pool.query("SELECT NOW()");
+  res.json(result[0]);
+});
 
 //PETICION EJEMPLO
 app.get("/ejemplo/:id", async (req, res) => {
@@ -388,4 +403,4 @@ app.delete("/deleteProduct/:id_producto", async (req, res) => {
 //ESCUCHANDO EL SERVIDOR
 app.listen(PORT, () => {
   console.log("Server running on port 8800");
-});
+}); 

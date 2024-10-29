@@ -1,0 +1,22 @@
+services:
+  mysqldb:
+      image: mysql:latest
+      environment:
+        MYSQL_ROOT_PASSWORD: devjesus
+        MYSQL_DATABASE: store_database
+      ports:
+        - 3307:3306
+      networks:
+        - app-network
+  app:
+    build: .
+    ports:
+      - 8800:8800
+    depends_on:
+      - mysqldb
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
