@@ -91,12 +91,28 @@ export async function loadCategory(id_admin) {
      return null;
    }
  }
- 
- //ELIMINAR PRODUCTO
- export async function eliminarProducto(id) {
-   const [row] = await pool.query(
-     "DELETE FROM PRODUCTOS WHERE ID_PRODUCTO = ?",
-     [id]
-   );
-   return row;
- }
+
+//FUNCION OBTENER PRODUCTO
+async function obtenerProductoPorId(id) {
+  const [rows] = await pool.query(
+    "SELECT * FROM PRODUCTOS WHERE ID_PRODUCTO = ?",
+    [id]
+  );
+  return rows[0];
+}
+
+//ELIMINAR PRODUCTO
+export async function eliminarProducto(id) {
+
+  const producto = await obtenerProductoPorId(id);
+  if (!producto) {
+    throw new Error("Producto no encontrado");
+  }
+
+  const [row] = await pool.query(
+    "DELETE FROM PRODUCTOS WHERE ID_PRODUCTO = ?",
+    [id]
+  );
+  
+  return { ...row, imagen: producto.IMAGEN };
+}

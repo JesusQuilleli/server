@@ -1,4 +1,5 @@
 import express from "express";
+import fs from 'fs'; 
 
 import {
   loadCategory,
@@ -141,7 +142,7 @@ routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
   }
 });
 
-//ELIMINAR PRODUCTO
+// ELIMINAR PRODUCTO
 routerProducts.delete("/deleteProduct/:id_producto", async (req, res) => {
   const productID = req.params.id_producto;
 
@@ -149,18 +150,18 @@ routerProducts.delete("/deleteProduct/:id_producto", async (req, res) => {
     const response = await eliminarProducto(productID);
 
     if (response.affectedRows > 0) {
-      // Asegúrate de que el producto fue eliminado
-      res
-        .status(200)
-        .send({ message: "Producto Eliminado con Éxito", id: productID });
+      // Eliminar la imagen si existe
+      if (response.imagen) {
+        fs.unlinkSync(`./uploads/${response.imagen}`);
+      }
+      
+      res.status(200).send({ message: "Producto Eliminado con Éxito", id: productID });
     } else {
-      res.status(404).send({ message: "Producto no encontrado" });
+      res.status(404).send({ message: "No se pudo eliminar el producto" });
     }
   } catch (error) {
     console.log("Error al Eliminar Producto", error);
-    res
-      .status(500)
-      .send({ message: "Error al eliminar el producto", error: error.message });
+    res.status(500).send({ message: "Error al eliminar el producto", error: error.message });
   }
 });
 

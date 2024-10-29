@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import path from "path";
 
+
 //IMPORTS RUTAS
 import { routerAuth } from "./routes/Auth.js";
 import { routerProducts } from "./routes/Products.js";
