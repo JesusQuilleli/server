@@ -2,10 +2,12 @@ services:
   mysqldb:
       image: mysql:latest
       environment:
-        MYSQL_ROOT_PASSWORD: devjesus
-        MYSQL_DATABASE: store_database
+        MYSQL_ROOT_PASSWORD: ${MYSQLDB_PASSWORD}
       ports:
         - 3307:3306
+      command: --init-file /data/application/schemaExample.sql
+      volumes:
+        - ./schemaExample.sql:/data/application/schemaExample.sql
       networks:
         - app-network
   app:
