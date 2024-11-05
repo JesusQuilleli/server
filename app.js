@@ -40,8 +40,8 @@ app.use("/", routerProducts);
 //RUTAS CLIENTES
 app.use("/", routesClients);
 
-app.get("/ping", (res) =>{
-  res.json('Hola Desde Internet');
+app.get("/ping", () =>{
+  return "HOLA INTERNET"
 });
 
 //ESCUCHANDO EL SERVIDOR
