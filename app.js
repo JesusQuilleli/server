@@ -40,6 +40,10 @@ app.use("/", routerProducts);
 //RUTAS CLIENTES
 app.use("/", routesClients);
 
+app.get("/ping", (res) =>{
+  res.json('Hola Desde Internet');
+});
+
 //ESCUCHANDO EL SERVIDOR
 app.listen(PORT, () => {
   console.log("Server running on port 8800");

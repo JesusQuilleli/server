@@ -1,4 +1,4 @@
-import { pool } from "../helpers";
+import { pool } from "../helpers/index.js";
 
 //CARGAR CLIENTES
 export async function loadClients(ID_ADMIN) {
