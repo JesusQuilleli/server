@@ -5,6 +5,7 @@ import {
   insertClients,
   editClient,
   deleteClient,
+  busquedaCliente
 } from "./../controllers/FunctionsClients.js";
 
 const routesClients = express.Router();
@@ -81,6 +82,18 @@ routesClients.delete("/eliminarCliente/:id_cliente", async (req, res) => {
     res
       .status(500)
       .send({ message: "Error al eliminar el cliente", error: error.message });
+  }
+});
+
+//FILTRAR CLIENTE
+routesClients.get("/buscarCliente", async (req, res) => {
+  const { nombre } = req.query;
+
+  try {
+    const response = await busquedaCliente(nombre);
+    res.status(200).send({ message: "Busqueda Exitosa", response });
+  } catch (error) {
+    console.log("Error en la busqueda", error);
   }
 });
 

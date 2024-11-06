@@ -64,3 +64,12 @@ export async function deleteClient(ID_CLIENTE) {
     console.error('Error al Eliminar Cliente');
   }
 }
+
+//FILTRAR CLIENTES
+export async function busquedaCliente(nombre) {
+  const [row] = await pool.query(
+    "SELECT ID_CLIENTE, NOMBRE, TELEFONO, EMAIL, DIRECCION, FECHA_REGISTRO FROM CLIENTES WHERE NOMBRE LIKE ?",
+    [`%${nombre}%`]
+  );
+  return row;
+}

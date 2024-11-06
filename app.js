@@ -11,6 +11,7 @@ import path from "path";
 import { routerAuth } from "./routes/Auth.js";
 import { routerProducts } from "./routes/Products.js";
 import { routesClients } from "./routes/Clients.js";
+import { routesVentas } from "./routes/Ventas.js";
 
 //PUERTO DESDE EL .ENV
 const PORT = process.env.MYSQLDB_PORT_NODE;
@@ -39,6 +40,9 @@ app.use("/", routerProducts);
 
 //RUTAS CLIENTES
 app.use("/", routesClients);
+
+//RUTAS VENTAS
+app.use("/", routesVentas);
 
 //PRUEBA
 app.get('/saludo', (req,res) => {
