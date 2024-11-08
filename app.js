@@ -34,7 +34,7 @@ app.use(fileUpload());
 app.use(cors());
 
 app.use(cors({
-  origin: 'http://3.129.243.189:8800', // o '*'
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
