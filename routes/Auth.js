@@ -6,10 +6,10 @@ const routerAuth = express.Router();
 
 //PETICION POST REGISTRAR ADMINISTRADOR -- END POINT
 routerAuth.post("/registerAdmin", async (req, res) => {
-  const { name, password, email, rolId } = req.body;
+  const { name, password, email} = req.body;
 
   try {
-    const result = await registerAdmin(name, password, email, rolId);
+    const result = await registerAdmin(name, password, email);
     res
       .status(200)
       .send({ message: "Administrador registrado con éxito", id: result });

@@ -2,15 +2,15 @@ import bcrypt from "bcrypt";
 import {pool} from "./../helpers/index.js"
 
 //FUNCION REGISTRAR ADMINISTRADOR
-export async function registerAdmin(name, password, email, rol_id) {
+export async function registerAdmin(name, password, email) {
    // Encriptar la contraseña
    const saltRounds = 10;
    const hashedPassword = await bcrypt.hash(password, saltRounds);
  
    // Insertar en la base de datos
    const [results] = await pool.query(
-     "INSERT INTO ADMINISTRADORES (NOMBRE, PASSWORD, EMAIL, ROL_ID) VALUES (?, ?, ?, ?)",
-     [name, hashedPassword, email, rol_id]
+     "INSERT INTO ADMINISTRADORES (NOMBRE, PASSWORD, EMAIL) VALUES (?, ?, ?)",
+     [name, hashedPassword, email]
    );
  
    return results;

@@ -5,6 +5,8 @@ import {
   realizarVenta,
   productosVendidos,
   infoResumidaVenta,
+  infoResumidaVentaPorFechas,
+  infoDetallada
 } from "./../controllers/FunctionsVentas.js";
 
 const routesVentas = express.Router();
@@ -98,6 +100,40 @@ routesVentas.get("/infoResum/:adminId", async (req, res) => {
     res.status(200).send({ message: "Ver Venta Resumida Lista", response });
   } catch (err) {
     console.log("Error en ver Venta Resumida", err);
+  }
+});
+
+// VER INFORMACION RESUMIDA DE LA VENTA CON RANGO DE FECHAS
+routesVentas.get("/infoResumFechas/:adminId", async (req, res) => {
+  try {
+    const adminId = req.params.adminId;
+    const { fechaInicio, fechaFin } = req.query;
+
+    // Verificamos que se envíen las fechas
+    if (!fechaInicio || !fechaFin) {
+      return res.status(400).send({ message: "Las fechas de inicio y fin son necesarias" });
+    }
+
+    const response = await infoResumidaVentaPorFechas(adminId, fechaInicio, fechaFin);
+
+    res.status(200).send({ message: "Ver Venta Resumida Lista", response });
+  } catch (err) {
+    console.error("Error en ver Venta Resumida", err);
+    res.status(500).send({ message: "Error en ver Venta Resumida" });
+  }
+});
+
+//VER INFORMACION DETALLADA DE LA VENTA
+routesVentas.get("/infoDetalle/:adminId/:ID_VENTA", async (req, res) => {
+  try {
+    const ID_ADMIN = req.params.adminId;
+    const ID_VENTA = req.params.ID_VENTA;
+
+    const response = await infoDetallada(ID_ADMIN, ID_VENTA);
+    res.status(200).send({message: "Informacion Detallada Correcta", response});
+
+  } catch (err) {
+    console.error("Error en cargar la Informacion Detallada", err)
   }
 });
 
