@@ -1,4 +1,4 @@
-import { pool } from "../helpers";
+import { pool } from "../helpers/index.js";
 
 //VER TASAS
 export async function obtenerTasasPorAdminId(adminId) {
