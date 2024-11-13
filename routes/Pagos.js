@@ -5,9 +5,9 @@ import {
   verPagosVenta,
 } from "./../controllers/FunctionsPagos.js";
 
-var routerPagos = express.Router();
+var routesPagos = express.Router();
 
-routerPagos.post("/pagoVenta", async (req, res) => {
+routesPagos.post("/pagoVenta", async (req, res) => {
   try {
     const { ventaId, montoAbonado, fechaPago, maneraPago, numeroReferencia } =
       req.body;
@@ -25,7 +25,7 @@ routerPagos.post("/pagoVenta", async (req, res) => {
   }
 });
 
-routerPagos.get("/verPagos/:adminId", async (req, res) => {
+routesPagos.get("/verPagos/:adminId", async (req, res) => {
   const adminId = req.params.adminId;
   try {
     const response = await verPagosGenerales(adminId);
@@ -46,7 +46,7 @@ routerPagos.get("/verPagos/:adminId", async (req, res) => {
   }
 });
 
-routerPagos.get("/verPagosVenta/:adminId/:Venta_ID", async (req, res) => {
+routesPagos.get("/verPagosVenta/:adminId/:Venta_ID", async (req, res) => {
   const adminId = req.params.adminId;
   const Venta_ID = req.params.Venta_ID;
   try {
@@ -70,3 +70,5 @@ routerPagos.get("/verPagosVenta/:adminId/:Venta_ID", async (req, res) => {
     res.status(500).send({ message: "Error al obtener los pagos por Venta" });
   }
 });
+
+export { routesPagos }
