@@ -105,7 +105,6 @@ export async function infoDetallada(ID_ADMIN, ID_VENTA) {
           v.ESTADO_PAGO,
           v.MONTO_TOTAL,
           v.MONTO_PENDIENTE,
-          GROUP_CONCAT(p.NOMBRE SEPARATOR ', ') AS LISTA_PRODUCTOS,
           v.ADMINISTRADOR_ID
             FROM 
                 VENTAS v
@@ -131,5 +130,19 @@ export async function infoDetallada(ID_ADMIN, ID_VENTA) {
     }
   } catch (error) {
     console.error("Error al ver Informacion Detallada", error)
+  }
+};
+
+//VER VENTAS POR ESTADO DE PAGO
+export async function ventasEstado_Pago(ID_ADMINISTRADOR, ESTADO_PAGO) {
+  const [result] = await pool.query(
+    "SELECT v.ID_VENTA, c.NOMBRE AS CLIENTE, v.FECHA_VENTA AS FECHA, v.ESTADO_PAGO FROM VENTAS v JOIN CLIENTES c ON v.CLIENTE_ID = c.ID_CLIENTE WHERE v.ADMINISTRADOR_ID = ? AND v.ESTADO_PAGO = ?",
+    [ID_ADMINISTRADOR, ESTADO_PAGO]
+  );
+
+  if (result) {
+    return result;
+  } else {
+    return null;
   }
 };

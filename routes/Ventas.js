@@ -6,7 +6,8 @@ import {
   productosVendidos,
   infoResumidaVenta,
   infoResumidaVentaPorFechas,
-  infoDetallada
+  infoDetallada,
+  ventasEstado_Pago
 } from "./../controllers/FunctionsVentas.js";
 
 const routesVentas = express.Router();
@@ -134,6 +135,21 @@ routesVentas.get("/infoDetalle/:adminId/:ID_VENTA", async (req, res) => {
 
   } catch (err) {
     console.error("Error en cargar la Informacion Detallada", err)
+  }
+});
+
+//VER VENTAS POR ESTADO DE PAGO
+routesVentas.get("/ventasEstadoPago/:adminId", async (req, res) => {
+  const { estadoPago } = req.query;
+  const adminId = req.params.adminId;
+  try {
+    const response = await ventasEstado_Pago(adminId, estadoPago);
+    res
+      .status(200)
+      .send({ message: "Ventas filtradas por estado de pago", response });
+  } catch (error) {
+    console.log("Error al filtrar las ventas", error);
+    res.status(500).send({ message: "Error al filtrar las ventas", error });
   }
 });
 

@@ -9,10 +9,14 @@ import {
   busquedaProductos,
   modificProduct,
   eliminarProducto,
+  insertCategorias,
+  deleteCategoria,
+  busquedaProductosPorVenta
 } from "./../controllers/FunctionsProductos.js";
 
 var routerProducts = express.Router();
 
+//CARGAR CATEGORIA
 routerProducts.get("/cargarCategorias/:adminId", async (req, res) => {
   const adminId = req.params.adminId;
   try {
@@ -23,6 +27,32 @@ routerProducts.get("/cargarCategorias/:adminId", async (req, res) => {
   } catch (error) {
     console.log("Ha ocurrido un error al Cargar Categorias", error);
     res.status(500).send("Error al cargar Categorias");
+  }
+});
+
+//AGREGAR CATEGORIA
+routerProducts.post("/agregarCategoria", async (req, res) => {
+  try {
+    const { NOMBRE, ADMINISTRADOR_ID } = req.body;
+    const response = await insertCategorias(NOMBRE, ADMINISTRADOR_ID);
+    res
+      .status(200)
+      .send({ message: "Categoria Registrada Exitosamente", response });
+  } catch (error) {
+    console.log("Error al Registrar Categoria", error);
+  }
+});
+
+//ELIMINAR CATEGORIA
+routerProducts.delete("/eliminarCategoria/:ID_CATEGORIA", async (req, res) => {
+  try {
+    const ID_CATEGORIA = req.params.ID_CATEGORIA;
+    const response = await deleteCategoria(ID_CATEGORIA);
+    res
+      .status(200)
+      .send({ message: "Categoria Eliminada Correctamente", response });
+  } catch (error) {
+    console.error("Error en el servidor al eliminar la Categoria", error);
   }
 });
 
@@ -52,7 +82,7 @@ routerProducts.get("/filtrarCategorias/:adminId", async (req, res) => {
   }
 });
 
-//BUSQUEDA EN TIEMPO REAL SOLO FALTA ESTA FUNCION
+//BUSQUEDA EN TIEMPO REAL 
 routerProducts.get("/buscarProductos", async (req, res) => {
   const { nombre } = req.query;
 
@@ -162,6 +192,34 @@ routerProducts.delete("/deleteProduct/:id_producto", async (req, res) => {
   } catch (error) {
     console.log("Error al Eliminar Producto", error);
     res.status(500).send({ message: "Error al eliminar el producto", error: error.message });
+  }
+});
+
+//VER PRODUCTOS POR VENTA
+routerProducts.get("/verProductosPorVenta/:adminId/:ventaId", async (req, res) => {
+  const adminId = req.params.adminId;
+  const ventaId = req.params.ventaId;
+
+  try {
+    // Llamamos a la función que obtiene los productos por venta
+    const response = await busquedaProductosPorVenta(ventaId, adminId);
+
+    if (response && response.length > 0) {
+      res.status(200).send({
+        message: "Productos obtenidos con éxito",
+        data: response
+      });
+    } else {
+      res.status(404).send({
+        message: "No se encontraron productos para esta venta",
+        data: []
+      });
+    }
+  } catch (err) {
+    console.error("Error al obtener los productos por venta:", err);
+    res.status(500).send({
+      message: "Error al obtener los productos por venta"
+    });
   }
 });
 

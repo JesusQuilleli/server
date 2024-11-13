@@ -2,7 +2,7 @@ import { pool } from '../helpers/index.js';
 
 ///////////////////CRUD PRODUCTOS////////////////////////////////////////
 
-//CARGAR CATEGORIAS
+//CARGAR CATEGORIAS OK
 export async function loadCategory(id_admin) {
    const rows = await pool.query(
      "SELECT ID_CATEGORIA, NOMBRE FROM CATEGORIAS WHERE ADMINISTRADOR_ID = ?",
@@ -13,9 +13,43 @@ export async function loadCategory(id_admin) {
    } else {
      return [];
    }
- }
+ };
+
+ //INSERTAR CATEGORIAS OK
+ export async function insertCategorias(NOMBRE, ADMINISTRADOR_ID) {
+  try {
+    const result = await pool.query(
+      "INSERT INTO CATEGORIAS (NOMBRE, ADMINISTRADOR_ID) VALUES (?,?)",
+      [NOMBRE, ADMINISTRADOR_ID]
+    );
+
+    if (result) {
+      return result;
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.log("Error al Registrar Categoria", error);
+  }
+};
+
+//ELIMINAR CATEGORIA OK 
+export async function deleteCategoria(ID_CATEGORIA) {
+  try {
+    const result = await pool.query(
+      "DELETE FROM CATEGORIAS WHERE ID_CATEGORIA = ?"
+      , [ID_CATEGORIA]);
+    if (result) {
+      return result;
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error("Error al Eliminar Categoria", error);
+  }
+};
  
- //INSERTAR PRODUCTOS
+ //INSERTAR PRODUCTOS OK
  export async function insertProducts(
    CATEGORIA_ID,
    NOMBRE,
@@ -37,7 +71,7 @@ export async function loadCategory(id_admin) {
    }
  }
  
- //VER TODOS LOS PRODUCTOS
+ //VER TODOS LOS PRODUCTOS OK
  export async function viewAllProducts(id_admin) {
    try {
      const [rows] = await pool.query(
@@ -51,7 +85,7 @@ export async function loadCategory(id_admin) {
    }
  }
  
- //VER PRODUCTOS POR CATEGORIAS
+ //VER PRODUCTOS POR CATEGORIAS OK
  export async function viewProductsCategory(id_categoria, id_admin) {
    const [row] = await pool.query(
      "SELECT P.ID_PRODUCTO, P.CATEGORIA_ID, P.NOMBRE AS PRODUCTO, P.DESCRIPCION, P.PRECIO, P.CANTIDAD, P.IMAGEN FROM PRODUCTOS P JOIN CATEGORIAS C ON P.CATEGORIA_ID = C.ID_CATEGORIA WHERE P.CATEGORIA_ID = ? AND P.ADMINISTRADOR_ID = ?",
@@ -61,7 +95,7 @@ export async function loadCategory(id_admin) {
    return row;
  }
  
- //BUSCAR PRODUCTOS
+ //BUSCAR PRODUCTOS OK
  export async function busquedaProductos(nombre) {
    const [row] = await pool.query(
      "SELECT P.ID_PRODUCTO, P.CATEGORIA_ID, C.NOMBRE AS CATEGORIA, P.NOMBRE AS PRODUCTO, P.DESCRIPCION, P.PRECIO, P.CANTIDAD, P.IMAGEN FROM PRODUCTOS P JOIN CATEGORIAS C ON P.CATEGORIA_ID = C.ID_CATEGORIA WHERE P.NOMBRE LIKE ?",
@@ -70,7 +104,7 @@ export async function loadCategory(id_admin) {
    return row;
  }
  
- //MODIFICAR UN PRODUCTO
+ //MODIFICAR UN PRODUCTO OK
  export async function modificProduct(
    CATEGORIA_ID,
    NOMBRE,
@@ -92,8 +126,8 @@ export async function loadCategory(id_admin) {
    }
  }
 
-//FUNCION OBTENER PRODUCTO
-async function obtenerProductoPorId(id) {
+//FUNCION OBTENER PRODUCTO OK
+export async function obtenerProductoPorId(id) {
   const [rows] = await pool.query(
     "SELECT * FROM PRODUCTOS WHERE ID_PRODUCTO = ?",
     [id]
@@ -101,7 +135,7 @@ async function obtenerProductoPorId(id) {
   return rows[0];
 }
 
-//ELIMINAR PRODUCTO
+//ELIMINAR PRODUCTO OK
 export async function eliminarProducto(id) {
 
   const producto = await obtenerProductoPorId(id);
@@ -115,4 +149,33 @@ export async function eliminarProducto(id) {
   );
   
   return { ...row, imagen: producto.IMAGEN };
+};
+
+//PRODUCTOS POR VENTAS OK
+export async function busquedaProductosPorVenta(idVenta, idAdministrador) {
+  try{
+    const [rows] = await pool.query(
+      `SELECT 
+          VENTAS.ID_VENTA, 
+          PRODUCTOS.NOMBRE AS PRODUCTO, 
+          VENTAS_PRODUCTOS.CANTIDAD
+       FROM 
+          VENTAS_PRODUCTOS
+       JOIN 
+          VENTAS ON VENTAS_PRODUCTOS.VENTA_ID = VENTAS.ID_VENTA
+       JOIN 
+          PRODUCTOS ON VENTAS_PRODUCTOS.PRODUCTO_ID = PRODUCTOS.ID_PRODUCTO
+       WHERE 
+          VENTAS_PRODUCTOS.VENTA_ID = ? 
+          AND VENTAS.ADMINISTRADOR_ID = ?
+       ORDER BY 
+          PRODUCTOS.NOMBRE`,
+      [idVenta, idAdministrador]
+    );
+    return rows;
+  } catch (error) {
+    console.error("Error en conocer los productos por venta", error)
+  }
+ 
 }
+

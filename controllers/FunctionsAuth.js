@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import {pool} from "./../helpers/index.js"
+import { pool } from "./../helpers/index.js"
 
 //FUNCION REGISTRAR ADMINISTRADOR
 export async function registerAdmin(name, password, email) {
@@ -14,7 +14,16 @@ export async function registerAdmin(name, password, email) {
    );
  
    return results;
- }
+ };
+
+ //VALIDAR SI YA EXISTE EL CORREO
+export async function findAdminByEmail(email) {
+  const [results] = await pool.query(
+    "SELECT EMAIL FROM ADMINISTRADORES WHERE EMAIL = ?",
+    [email]
+  );
+  return results.length > 0 ? results[0] : null; // Retorna el usuario si existe o null si no existe
+};
  
  //VALIDAR USUARIO EN LA BASE DE DATOS, DE LA TABLA ADMINISTRADORES
  export async function checkUser(email, password) {

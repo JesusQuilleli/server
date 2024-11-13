@@ -12,6 +12,8 @@ import { routerAuth } from "./routes/Auth.js";
 import { routerProducts } from "./routes/Products.js";
 import { routesClients } from "./routes/Clients.js";
 import { routesVentas } from "./routes/Ventas.js";
+import { routesTasa } from './routes/Tasas.js'
+import { routesPagos } from './routes/Pagos.js'
 
 //PUERTO DESDE EL .ENV
 const PORT = process.env.MYSQLDB_PORT_NODE;
@@ -33,12 +35,6 @@ app.use(fileUpload());
 
 app.use(cors());
 
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
 //RUTAS AUTENTICACION
 app.use("/", routerAuth);
 
@@ -50,6 +46,12 @@ app.use("/", routesClients);
 
 //RUTAS VENTAS
 app.use("/", routesVentas);
+
+//RUTAS TASAS
+app.use("/", routesTasa);
+
+//RUTA PAGOS
+app.use("/", routesPagos);
 
 //PRUEBA
 app.get('/saludo', (req,res) => {
