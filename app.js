@@ -14,6 +14,7 @@ import { routesClients } from "./routes/Clients.js";
 import { routesVentas } from "./routes/Ventas.js";
 import { routesTasa } from './routes/Tasas.js'
 import { routesPagos } from './routes/Pagos.js'
+import { routesNotificaciones } from "./routes/Notificaciones.js";
 
 //PUERTO DESDE EL .ENV
 const PORT = process.env.MYSQLDB_PORT_NODE;
@@ -52,6 +53,9 @@ app.use("/", routesTasa);
 
 //RUTA PAGOS
 app.use("/", routesPagos);
+
+//RUTAS NOTIFICACIONES
+app.use("/", routesNotificaciones);
 
 //PRUEBA
 app.get('/saludo', (req,res) => {

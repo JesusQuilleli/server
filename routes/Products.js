@@ -96,7 +96,7 @@ routerProducts.get("/buscarProductos", async (req, res) => {
 
 //REGISTRAR PRODUCTOS
 routerProducts.post("/registerProduct", async (req, res) => {
-  const { categoria, nombre, descripcion, precio, cantidad, adminId } =
+  const { categoria, nombre, descripcion, precioCompra, precio, cantidad, adminId } =
     req.body;
   const imagen = req.files?.imagen;
 
@@ -116,6 +116,7 @@ routerProducts.post("/registerProduct", async (req, res) => {
       categoria,
       nombre,
       descripcion,
+      precioCompra,
       precio,
       cantidad,
       nombreUnico,
@@ -135,7 +136,7 @@ routerProducts.post("/registerProduct", async (req, res) => {
 
 //MODIFICAR PRODUCTO
 routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
-  const { categoria, nombre, descripcion, precio, cantidad, adminId } =
+  const { categoria, nombre, descripcion, precioCompra, precio, cantidad, adminId } =
     req.body;
   const imagen = req.files?.imagen; // Asegúrate de que req.files esté definido
   const productId = req.params.id_producto;
@@ -155,6 +156,7 @@ routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
       categoria,
       nombre,
       descripcion,
+      parseFloat(precioCompra),
       parseFloat(precio),
       parseInt(cantidad),
       nombreUnico || null, // Solo se actualiza la imagen si se ha enviado una nueva
