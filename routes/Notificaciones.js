@@ -1,6 +1,6 @@
 import express from "express";
 
-import { guardarToken, verificarInventario } from "../controllers/FunctionsNotificaciones";
+import { guardarToken, verificarInventario } from "../controllers/FunctionsNotificaciones.js";
 
 const routesNotificaciones = express.Router();
 
