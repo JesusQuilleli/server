@@ -10,7 +10,7 @@ import {
 
 const routesClients = express.Router();
 
-//CARGAR CLIENTES
+//CARGAR CLIENTES --VERIFICADO
 routesClients.get("/cargarClientes/:adminId", async (req, res) => {
   const adminId = req.params.adminId;
   try {
@@ -21,11 +21,12 @@ routesClients.get("/cargarClientes/:adminId", async (req, res) => {
   }
 });
 
-//INSERTAR CLIENTE
+//INSERTAR CLIENTE --VERIFICADO
 routesClients.post("/insertarCliente", async (req, res) => {
   try {
-    const { nombre, telefono, correo, direccion, fecha, adminId } = req.body;
+    const { cedulaCliente, nombre, telefono, correo, direccion, fecha, adminId } = req.body;
     const resultado = await insertClients(
+      cedulaCliente,
       nombre,
       telefono,
       correo,
@@ -41,7 +42,7 @@ routesClients.post("/insertarCliente", async (req, res) => {
   }
 });
 
-//EDITAR CLIENTE
+//EDITAR CLIENTE --VERIFICADO
 routesClients.put("/updateCliente/:id_cliente", async (req, res) => {
   try {
     const { nombre, telefono, correo, direccion } = req.body;
@@ -63,7 +64,7 @@ routesClients.put("/updateCliente/:id_cliente", async (req, res) => {
   }
 });
 
-//ELIMINAR CLIENTE
+//ELIMINAR CLIENTE --VERIFICADO
 routesClients.delete("/eliminarCliente/:id_cliente", async (req, res) => {
   try {
     const clientID = req.params.id_cliente;
@@ -85,7 +86,7 @@ routesClients.delete("/eliminarCliente/:id_cliente", async (req, res) => {
   }
 });
 
-//FILTRAR CLIENTE
+//FILTRAR CLIENTE --VERIFICADO
 routesClients.get("/buscarCliente", async (req, res) => {
   const { nombre } = req.query;
 

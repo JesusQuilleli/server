@@ -16,7 +16,7 @@ import {
 
 var routerProducts = express.Router();
 
-//CARGAR CATEGORIA
+//CARGAR CATEGORIA --VERIFICADO
 routerProducts.get("/cargarCategorias/:adminId", async (req, res) => {
   const adminId = req.params.adminId;
   try {
@@ -43,7 +43,7 @@ routerProducts.post("/agregarCategoria", async (req, res) => {
   }
 });
 
-//ELIMINAR CATEGORIA
+//ELIMINAR CATEGORIA --VERIFICADO
 routerProducts.delete("/eliminarCategoria/:ID_CATEGORIA", async (req, res) => {
   try {
     const ID_CATEGORIA = req.params.ID_CATEGORIA;
@@ -56,7 +56,7 @@ routerProducts.delete("/eliminarCategoria/:ID_CATEGORIA", async (req, res) => {
   }
 });
 
-//CARGAR PRODUCTOS
+//CARGAR PRODUCTOS --VERIFICADO
 routerProducts.get("/cargarProductos/:adminId", async (req, res) => {
   const adminId = req.params.adminId; // Obtener el ID del administrador desde los parámetros de la ruta
   try {
@@ -70,7 +70,7 @@ routerProducts.get("/cargarProductos/:adminId", async (req, res) => {
   }
 });
 
-//FILTRAR CATEGORIAS
+//FILTRAR CATEGORIAS --VERIFICADO
 routerProducts.get("/filtrarCategorias/:adminId", async (req, res) => {
   const { categoria_id } = req.query;
   const adminId = req.params.adminId;
@@ -82,7 +82,7 @@ routerProducts.get("/filtrarCategorias/:adminId", async (req, res) => {
   }
 });
 
-//BUSQUEDA EN TIEMPO REAL 
+//BUSQUEDA EN TIEMPO REAL --VERIFICADO
 routerProducts.get("/buscarProductos", async (req, res) => {
   const { nombre } = req.query;
 
@@ -94,7 +94,7 @@ routerProducts.get("/buscarProductos", async (req, res) => {
   }
 });
 
-//REGISTRAR PRODUCTOS
+//REGISTRAR PRODUCTOS --VERIFICADO
 routerProducts.post("/registerProduct", async (req, res) => {
   const { categoria, nombre, descripcion, precioCompra, precio, cantidad, adminId } =
     req.body;
@@ -134,9 +134,9 @@ routerProducts.post("/registerProduct", async (req, res) => {
   }
 });
 
-//MODIFICAR PRODUCTO
+//MODIFICAR PRODUCTO --VERIFICADO
 routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
-  const { categoria, nombre, descripcion, precioCompra, precio, cantidad, adminId } =
+  const { categoria, nombre, descripcion, precioCompra, precio, cantidad } =
     req.body;
   const imagen = req.files?.imagen; // Asegúrate de que req.files esté definido
   const productId = req.params.id_producto;
@@ -197,7 +197,7 @@ routerProducts.delete("/deleteProduct/:id_producto", async (req, res) => {
   }
 });
 
-//VER PRODUCTOS POR VENTA
+//VER PRODUCTOS POR VENTA --VERIFICADO
 routerProducts.get("/verProductosPorVenta/:adminId/:ventaId", async (req, res) => {
   const adminId = req.params.adminId;
   const ventaId = req.params.ventaId;

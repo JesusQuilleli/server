@@ -31,7 +31,7 @@ routesTasa.get("/verTasa/:adminId", async (req, res) => {
   }
 });
 
-// INSERTAR O ACTUALIZAR TASA DE CAMBIO
+// INSERTAR O ACTUALIZAR TASA DE CAMBIO --VERIFICADO
 routesTasa.post("/insertarOActualizarTasa", async (req, res) => {
   const { moneda, tasa, adminId } = req.body;
 

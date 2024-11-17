@@ -1,6 +1,6 @@
 import { pool } from "../helpers/index.js";
 
-//VER TASAS
+//VER TASAS --VERIFICADO
 export async function obtenerTasasPorAdminId(adminId) {
   try {
     // Consultar todas las tasas de cambio para el administrador
@@ -20,6 +20,7 @@ export async function obtenerTasasPorAdminId(adminId) {
   }
 }
 
+//INSERTAR O ACTUALIZAR EL REGISTRO --VERIFICADO
 export async function insertarOActualizarTasa(MONEDA, TASA, ADMIN_ID) {
   try {
     // Verificar si ya existe una tasa para este administrador y moneda específica

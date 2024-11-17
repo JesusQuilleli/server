@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import { pool } from "./../helpers/index.js"
 
-//FUNCION REGISTRAR ADMINISTRADOR
+//FUNCION REGISTRAR ADMINISTRADOR --VERIFICADO
 export async function registerAdmin(name, password, email) {
    // Encriptar la contraseña
    const saltRounds = 10;
@@ -16,7 +16,7 @@ export async function registerAdmin(name, password, email) {
    return results;
  };
 
- //VALIDAR SI YA EXISTE EL CORREO
+ //VALIDAR SI YA EXISTE EL CORREO --VERIFICADO
 export async function findAdminByEmail(email) {
   const [results] = await pool.query(
     "SELECT EMAIL FROM ADMINISTRADORES WHERE EMAIL = ?",
@@ -25,7 +25,7 @@ export async function findAdminByEmail(email) {
   return results.length > 0 ? results[0] : null; // Retorna el usuario si existe o null si no existe
 };
  
- //VALIDAR USUARIO EN LA BASE DE DATOS, DE LA TABLA ADMINISTRADORES
+ //VALIDAR USUARIO EN LA BASE DE DATOS, DE LA TABLA ADMINISTRADORES --VERIFICADO
  export async function checkUser(email, password) {
    const [rows] = await pool.query(
      `SELECT ID_ADMINISTRADOR, EMAIL, NOMBRE, PASSWORD FROM ADMINISTRADORES WHERE EMAIL = ?`,

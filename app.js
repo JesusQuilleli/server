@@ -36,25 +36,25 @@ app.use(fileUpload());
 
 app.use(cors());
 
-//RUTAS AUTENTICACION
+//RUTAS AUTENTICACION --VERIFICADO
 app.use("/", routerAuth);
 
-//RUTAS PRODUCTOS
+//RUTAS PRODUCTOS --VERIFICADO
 app.use("/", routerProducts);
 
-//RUTAS CLIENTES
+//RUTAS CLIENTES --VERIFICADO
 app.use("/", routesClients);
 
-//RUTAS VENTAS
+//RUTAS VENTAS --VERIFICADO
 app.use("/", routesVentas);
 
-//RUTAS TASAS
+//RUTAS TASAS --VERIFICADO
 app.use("/", routesTasa);
 
-//RUTA PAGOS
+//RUTA PAGOS --VERIFICADO
 app.use("/", routesPagos);
 
-//RUTAS NOTIFICACIONES
+//RUTAS NOTIFICACIONES --VERIFICADO
 app.use("/", routesNotificaciones);
 
 //PRUEBA

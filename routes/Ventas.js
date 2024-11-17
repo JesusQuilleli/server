@@ -6,13 +6,15 @@ import {
   productosVendidos,
   infoResumidaVenta,
   infoResumidaVentaPorFechas,
+  infoResumidaVentaPorCedula,
   infoDetallada,
-  ventasEstado_Pago
+  ventasEstado_Pago,
+  deleteVentas
 } from "./../controllers/FunctionsVentas.js";
 
 const routesVentas = express.Router();
 
-//EDITAR PRODUCTOS SELECCIONADOS EN EL CARRITO + O -
+//EDITAR PRODUCTOS SELECCIONADOS EN EL CARRITO + O - --VERIFICADO
 routesVentas.put("/updateProductoStock/:id_producto", async (req, res) => {
   try {
     const { cantidad } = req.body; // La cantidad a actualizar
@@ -42,7 +44,7 @@ routesVentas.put("/updateProductoStock/:id_producto", async (req, res) => {
   }
 });
 
-//PROCESAR VENTA
+//PROCESAR VENTA --VERIFICADO
 routesVentas.post("/procesarVenta", async (req, res) => {
   try {
     const {
@@ -78,7 +80,7 @@ routesVentas.post("/procesarVenta", async (req, res) => {
   }
 });
 
-//INSERTAR PRODUCTOS RELACIONADOS CON LA VENTA
+//INSERTAR PRODUCTOS RELACIONADOS CON LA VENTA --VERIFICADO
 routesVentas.post("/ventaProductos", async (req, res) => {
   try {
     const { ventaId, productoId, cantidad } = req.body;
@@ -92,7 +94,7 @@ routesVentas.post("/ventaProductos", async (req, res) => {
   }
 });
 
-//VER INFORMACION RESUMIDA DE LA VENTA
+//VER INFORMACION RESUMIDA DE LA VENTA --VERIFICADO
 routesVentas.get("/infoResum/:adminId", async (req, res) => {
   try {
     const adminId = req.params.adminId;
@@ -104,7 +106,27 @@ routesVentas.get("/infoResum/:adminId", async (req, res) => {
   }
 });
 
-// VER INFORMACION RESUMIDA DE LA VENTA CON RANGO DE FECHAS
+//VER INFORMACION DE LAS VENTAS POR CEDULA DEL CLIENTE  --VERIFICADO
+routesVentas.get("/infoResumCedula/:adminId/:cedulaCliente", async (req, res) => {
+  try {
+    const adminId = req.params.adminId;  // Obtener ID del administrador
+    const cedulaCliente = req.params.cedulaCliente;  // Obtener cédula del cliente desde la URL
+
+    // Llamar a la función que consulta las ventas filtradas por cédula
+    const response = await infoResumidaVentaPorCedula(adminId, cedulaCliente);
+
+    if (response) {
+      res.status(200).send({ message: "Ventas filtradas por cédula obtenidas con éxito", response });
+    } else {
+      res.status(200).send({ message: "No se encontraron ventas para la cédula proporcionada", response });
+    }
+  } catch (err) {
+    console.log("Error en ver Venta Resumida por cédula", err);
+    res.status(500).send({ message: "Error al obtener las ventas por cédula" });
+  }
+});
+
+// VER INFORMACION RESUMIDA DE LA VENTA CON RANGO DE FECHAS --VERIFICADOS
 routesVentas.get("/infoResumFechas/:adminId", async (req, res) => {
   try {
     const adminId = req.params.adminId;
@@ -123,8 +145,8 @@ routesVentas.get("/infoResumFechas/:adminId", async (req, res) => {
     res.status(500).send({ message: "Error en ver Venta Resumida" });
   }
 });
-
-//VER INFORMACION DETALLADA DE LA VENTA
+ 
+//VER INFORMACION DETALLADA DE LA VENTA --VERIFICADOS
 routesVentas.get("/infoDetalle/:adminId/:ID_VENTA", async (req, res) => {
   try {
     const ID_ADMIN = req.params.adminId;
@@ -138,7 +160,7 @@ routesVentas.get("/infoDetalle/:adminId/:ID_VENTA", async (req, res) => {
   }
 });
 
-//VER VENTAS POR ESTADO DE PAGO
+//VER VENTAS POR ESTADO DE PAGO --VERIFICADOS
 routesVentas.get("/ventasEstadoPago/:adminId", async (req, res) => {
   const { estadoPago } = req.query;
   const adminId = req.params.adminId;
@@ -150,6 +172,27 @@ routesVentas.get("/ventasEstadoPago/:adminId", async (req, res) => {
   } catch (error) {
     console.log("Error al filtrar las ventas", error);
     res.status(500).send({ message: "Error al filtrar las ventas", error });
+  }
+});
+
+//ELIMINAR MULTIPLES VENTAS --VERIFICADO
+routesVentas.delete("/eliminarVentas", async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    const response = await deleteVentas(ids);
+
+    if (response.affectedRows > 0) {
+      res.status(200).send({ message: "Ventas eliminadas con éxito", ids });
+        
+    } else {
+      res.status(404).send({ message: "Ventas no encontradas" });
+    }
+  } catch (error) {
+    console.log("Error al eliminar ventas", error);
+    res
+      .status(500)
+      .send({ message: "Error al eliminar ventas", error: error.message });
   }
 });
 

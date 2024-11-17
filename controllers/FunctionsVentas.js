@@ -1,6 +1,6 @@
 import { pool } from "./../helpers/index.js"
 
-//SUMAR O RESTAR PRODUCTO SEGUN LA VENTA
+//SUMAR O RESTAR PRODUCTO SEGUN LA VENTA --VERIFICADO
 export async function editStockProducto(cantidad, ID_PRODUCTO) {
   try {
     const [results] = await pool.query(
@@ -19,7 +19,7 @@ export async function editStockProducto(cantidad, ID_PRODUCTO) {
   }
 }
 
-//PROCESAR LA VENTA
+//PROCESAR LA VENTA --VERIFICADO
 export async function realizarVenta(
   CLIENTE_ID,
   MONTO_TOTAL,
@@ -49,7 +49,7 @@ export async function realizarVenta(
   }
 }
 
-//PROCESAR PRODUCTOS VENDIDOS EN LA VENTA
+//PROCESAR PRODUCTOS VENDIDOS EN LA VENTA --VERIFICADO
 export async function productosVendidos(VENTA_ID, PRODUCTO_ID, CANTIDAD) {
   const [result] = await pool.query(
     "INSERT INTO VENTAS_PRODUCTOS (VENTA_ID, PRODUCTO_ID, CANTIDAD) VALUES (?,?,?)",
@@ -63,10 +63,10 @@ export async function productosVendidos(VENTA_ID, PRODUCTO_ID, CANTIDAD) {
   }
 }
 
-//INFORMACION RESUMIDA VENTA
+//INFORMACION RESUMIDA VENTA --VERIFICADO
 export async function infoResumidaVenta(ID_ADMINISTRADOR) {
   const [result] = await pool.query(
-    "SELECT v.ID_VENTA, c.NOMBRE AS CLIENTE, v.FECHA_VENTA AS FECHA, v.ESTADO_PAGO FROM VENTAS v JOIN CLIENTES c ON v.CLIENTE_ID = c.ID_CLIENTE WHERE v.ADMINISTRADOR_ID = ?",
+    "SELECT v.ID_VENTA, c.NOMBRE AS CLIENTE, c.TELEFONO, v.FECHA_VENTA AS FECHA, v.ESTADO_PAGO FROM VENTAS v JOIN CLIENTES c ON v.CLIENTE_ID = c.ID_CLIENTE WHERE v.ADMINISTRADOR_ID = ?",
     [ID_ADMINISTRADOR]
   );
 
@@ -77,7 +77,24 @@ export async function infoResumidaVenta(ID_ADMINISTRADOR) {
   }
 };
 
-// INFORMACION RESUMIDA VENTA CON RANGO DE FECHAS
+//INFORMACION RESUMIDA POR CEDULA DEL CLIENTE --VERIFICADO
+export async function infoResumidaVentaPorCedula(ID_ADMINISTRADOR, cedulaCliente) {
+  const [result] = await pool.query(
+    "SELECT v.ID_VENTA, c.NOMBRE AS CLIENTE, v.FECHA_VENTA AS FECHA, v.ESTADO_PAGO " +
+    "FROM VENTAS v " +
+    "JOIN CLIENTES c ON v.CLIENTE_ID = c.ID_CLIENTE " +
+    "WHERE v.ADMINISTRADOR_ID = ? AND c.CEDULA LIKE ?",
+    [ID_ADMINISTRADOR, `%${cedulaCliente}%`] 
+  );
+
+  if (result && result.length > 0) {
+    return result;
+  } else {
+    return [];  // Si no se encuentra ninguna venta con la cédula proporcionada
+  }
+}
+
+// INFORMACION RESUMIDA VENTA CON RANGO DE FECHAS --VERIFICADO
 export async function infoResumidaVentaPorFechas(ID_ADMINISTRADOR, fechaInicio, fechaFin) {
   const [result] = await pool.query(
     `SELECT v.ID_VENTA, c.NOMBRE AS CLIENTE, v.FECHA_VENTA AS FECHA, v.ESTADO_PAGO
@@ -98,10 +115,14 @@ export async function infoResumidaVentaPorFechas(ID_ADMINISTRADOR, fechaInicio, 
 //INFORMACION DETALLADA VENTA
 export async function infoDetallada(ID_ADMIN, ID_VENTA) {
   try {
-    const [result] = await pool.query(`
+    const [result] = await pool.query(
+      `
             SELECT 
+          v.ID_VENTA,
           c.NOMBRE AS CLIENTE,
+          c.TELEFONO,
           v.FECHA_VENTA AS FECHA,
+          v.TIPO_PAGO,
           v.ESTADO_PAGO,
           v.MONTO_TOTAL,
           v.MONTO_PENDIENTE,
@@ -128,12 +149,10 @@ export async function infoDetallada(ID_ADMIN, ID_VENTA) {
     } else {
       return null;
     }
-  } catch (error) {
-    console.error("Error al ver Informacion Detallada", error)
-  }
-};
+  } catch (error) {}
+}
 
-//VER VENTAS POR ESTADO DE PAGO
+//VER VENTAS POR ESTADO DE PAGO --VERIFICADO
 export async function ventasEstado_Pago(ID_ADMINISTRADOR, ESTADO_PAGO) {
   const [result] = await pool.query(
     "SELECT v.ID_VENTA, c.NOMBRE AS CLIENTE, v.FECHA_VENTA AS FECHA, v.ESTADO_PAGO FROM VENTAS v JOIN CLIENTES c ON v.CLIENTE_ID = c.ID_CLIENTE WHERE v.ADMINISTRADOR_ID = ? AND v.ESTADO_PAGO = ?",
@@ -146,3 +165,12 @@ export async function ventasEstado_Pago(ID_ADMINISTRADOR, ESTADO_PAGO) {
     return null;
   }
 };
+
+//ELIMINAR MULTIPLES VENTAS --VERIFICADO
+export async function deleteVentas(ids) {
+  const [result] = await pool.query(
+    "DELETE FROM VENTAS WHERE ID_VENTA IN (?)",
+    [ids]
+  );
+  return result;
+}

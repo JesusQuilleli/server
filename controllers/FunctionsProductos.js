@@ -2,7 +2,7 @@ import { pool } from "../helpers/index.js";
 
 ///////////////////CRUD PRODUCTOS////////////////////////////////////////
 
-//CARGAR CATEGORIAS OK
+//CARGAR CATEGORIAS OK --VERIFICADO
 export async function loadCategory(id_admin) {
   const rows = await pool.query(
     "SELECT ID_CATEGORIA, NOMBRE FROM CATEGORIAS WHERE ADMINISTRADOR_ID = ?",
@@ -15,7 +15,7 @@ export async function loadCategory(id_admin) {
   }
 }
 
-//INSERTAR CATEGORIAS OK
+//INSERTAR CATEGORIAS OK --VERIFICADO
 export async function insertCategorias(NOMBRE, ADMINISTRADOR_ID) {
   try {
     const result = await pool.query(
@@ -33,7 +33,7 @@ export async function insertCategorias(NOMBRE, ADMINISTRADOR_ID) {
   }
 }
 
-//ELIMINAR CATEGORIA OK
+//ELIMINAR CATEGORIA OK --VERIFICADO
 export async function deleteCategoria(ID_CATEGORIA) {
   try {
     const result = await pool.query(
@@ -50,7 +50,7 @@ export async function deleteCategoria(ID_CATEGORIA) {
   }
 }
 
-//INSERTAR PRODUCTOS OK
+//INSERTAR PRODUCTOS OK --VERIFICADO
 export async function insertProducts(
   CATEGORIA_ID,
   NOMBRE,
@@ -82,7 +82,7 @@ export async function insertProducts(
   }
 }
 
-//VER TODOS LOS PRODUCTOS OK
+//VER TODOS LOS PRODUCTOS OK --VERIFICADO
 export async function viewAllProducts(id_admin) {
   try {
     const [rows] = await pool.query(
@@ -96,7 +96,7 @@ export async function viewAllProducts(id_admin) {
   }
 }
 
-//VER PRODUCTOS POR CATEGORIAS OK
+//VER PRODUCTOS POR CATEGORIAS OK --VERIFICADO
 export async function viewProductsCategory(id_categoria, id_admin) {
   const [row] = await pool.query(
     "SELECT P.ID_PRODUCTO, P.CATEGORIA_ID,C.NOMBRE AS CATEGORIA, P.NOMBRE AS PRODUCTO, P.DESCRIPCION, P.PRECIO_COMPRA, P.PRECIO, P.CANTIDAD, P.IMAGEN FROM PRODUCTOS P JOIN CATEGORIAS C ON P.CATEGORIA_ID = C.ID_CATEGORIA WHERE P.CATEGORIA_ID = ? AND P.ADMINISTRADOR_ID = ?",
@@ -106,16 +106,16 @@ export async function viewProductsCategory(id_categoria, id_admin) {
   return row;
 }
 
-//BUSCAR PRODUCTOS OK
+//BUSCAR PRODUCTOS OK --VERIFICADO
 export async function busquedaProductos(nombre) {
   const [row] = await pool.query(
-    "SELECT P.ID_PRODUCTO, P.CATEGORIA_ID, C.NOMBRE AS CATEGORIA, P.NOMBRE AS PRODUCTO, P.DESCRIPCION, P.PRECIO, P.CANTIDAD, P.IMAGEN FROM PRODUCTOS P JOIN CATEGORIAS C ON P.CATEGORIA_ID = C.ID_CATEGORIA WHERE P.NOMBRE LIKE ?",
+    "SELECT P.ID_PRODUCTO, P.CATEGORIA_ID, C.NOMBRE AS CATEGORIA, P.NOMBRE AS PRODUCTO,P.PRECIO_COMPRA, P.DESCRIPCION, P.PRECIO, P.CANTIDAD, P.IMAGEN FROM PRODUCTOS P JOIN CATEGORIAS C ON P.CATEGORIA_ID = C.ID_CATEGORIA WHERE P.NOMBRE LIKE ?",
     [`%${nombre}%`]
   );
   return row;
 }
 
-//MODIFICAR UN PRODUCTO OK
+//MODIFICAR UN PRODUCTO OK --VERIFICADO
 export async function modificProduct(
   CATEGORIA_ID,
   NOMBRE,
@@ -147,7 +147,7 @@ export async function modificProduct(
   }
 }
 
-//FUNCION OBTENER PRODUCTO OK
+//FUNCION OBTENER PRODUCTO OK --VERIFICADO
 export async function obtenerProductoPorId(id) {
   const [rows] = await pool.query(
     "SELECT * FROM PRODUCTOS WHERE ID_PRODUCTO = ?",
@@ -156,7 +156,7 @@ export async function obtenerProductoPorId(id) {
   return rows[0];
 }
 
-//ELIMINAR PRODUCTO OK
+//ELIMINAR PRODUCTO OK --VERIFICADO
 export async function eliminarProducto(id) {
   const producto = await obtenerProductoPorId(id);
   if (!producto) {
@@ -171,7 +171,7 @@ export async function eliminarProducto(id) {
   return { ...row, imagen: producto.IMAGEN };
 }
 
-//PRODUCTOS POR VENTAS OK
+//PRODUCTOS POR VENTAS OK --VERIFICADO
 export async function busquedaProductosPorVenta(idVenta, idAdministrador) {
   try {
     const [rows] = await pool.query(

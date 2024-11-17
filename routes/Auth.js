@@ -8,7 +8,7 @@ import {
 
 const routerAuth = express.Router();
 
-//PETICION POST REGISTRAR ADMINISTRADOR -- END POINT
+//PETICION POST REGISTRAR ADMINISTRADOR -- END POINT --VERIFICADO
 routerAuth.post("/registerAdmin", async (req, res) => {
   const { name, password, email } = req.body;
 
@@ -34,7 +34,7 @@ routerAuth.post("/registerAdmin", async (req, res) => {
   }
 });
 
-// PETICIÓN PARA VERIFICAR SI LOS DATOS INGRESADOS SON CORRECTOS Y AUTENTICAR INICIO DE SESIÓN
+// PETICIÓN PARA VERIFICAR SI LOS DATOS INGRESADOS SON CORRECTOS Y AUTENTICAR INICIO DE SESIÓN --VERIFICADO
 routerAuth.post("/autenticacionInicio", async (req, res) => {
   const { email, password } = req.body;
   try {

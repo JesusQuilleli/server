@@ -3,7 +3,7 @@ import { pool } from "./../helpers/index.js";
 //AGREGAR AL DOCKER PARA LAS NOTIFICACIONES
 import { Expo } from "expo-server-sdk";
 
-//GUARDAR TOKEN EN LA BASE DE DATOS
+//GUARDAR TOKEN EN LA BASE DE DATOS --VERIFICADO
 export async function guardarToken(administrador_id, token) {
   try {
     // Primero, verifica si el token ya existe para el administrador
@@ -31,7 +31,7 @@ export async function guardarToken(administrador_id, token) {
   }
 };
 
-//ENVIAR MENSAJE
+//ENVIAR MENSAJE --VERIFICADO
 const enviarNotificacionPush = async (message) => {
   const expo = new Expo();
 
@@ -82,7 +82,7 @@ const enviarNotificacionPush = async (message) => {
   }
 };
 
-// VERIFICAR INVENTARIO DE PRODUCTOS POR ID PARA LAS NOTIFICACIONES
+// VERIFICAR INVENTARIO DE PRODUCTOS POR ID PARA LAS NOTIFICACIONES --VERIFICADO
 export async function verificarInventario(id_admin) {
   try {
     const limiteStockBajo = 5; // Definir el límite de stock bajo

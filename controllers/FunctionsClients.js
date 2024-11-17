@@ -1,10 +1,10 @@
 import { pool } from "../helpers/index.js";
 
-//CARGAR CLIENTES
+//CARGAR CLIENTES --VERIFICADO
 export async function loadClients(ID_ADMIN) {
   try {
     const [row] = await pool.query(
-      "SELECT ID_CLIENTE, NOMBRE, TELEFONO, EMAIL, DIRECCION, FECHA_REGISTRO FROM CLIENTES WHERE ADMINISTRADOR_ID = ?",
+      "SELECT ID_CLIENTE, CEDULA, NOMBRE, TELEFONO, EMAIL, DIRECCION, FECHA_REGISTRO FROM CLIENTES WHERE ADMINISTRADOR_ID = ?",
       [ID_ADMIN]
     );
 
@@ -15,8 +15,9 @@ export async function loadClients(ID_ADMIN) {
   }
 }
 
-//INSERTAR CLIENTES
+//INSERTAR CLIENTES --VERIFICADO
 export async function insertClients(
+  CEDULA,
   NOMBRE,
   TELEFONO,
   EMAIL,
@@ -25,8 +26,8 @@ export async function insertClients(
   ADMIN_ID
 ) {
   const [result] = await pool.query(
-    "INSERT INTO CLIENTES (NOMBRE, TELEFONO, EMAIL, DIRECCION, FECHA_REGISTRO, ADMINISTRADOR_ID) VALUES (?,?,?,?,?,?)",
-    [NOMBRE, TELEFONO, EMAIL, DIRECCION, FECHA_REGISTRO, ADMIN_ID]
+    "INSERT INTO CLIENTES (CEDULA, NOMBRE, TELEFONO, EMAIL, DIRECCION, FECHA_REGISTRO, ADMINISTRADOR_ID) VALUES (?,?,?,?,?,?,?)",
+    [CEDULA, NOMBRE, TELEFONO, EMAIL, DIRECCION, FECHA_REGISTRO, ADMIN_ID]
   );
 
   if (result) {
@@ -36,7 +37,7 @@ export async function insertClients(
   }
 }
 
-//EDITAR CLIENTE
+//EDITAR CLIENTE --VERIFICADO
 export async function editClient(NOMBRE, TELEFONO, EMAIL, DIRECCION, ID_CLIENTE) {
   try {
     const [results] = await pool.query(
@@ -55,7 +56,7 @@ export async function editClient(NOMBRE, TELEFONO, EMAIL, DIRECCION, ID_CLIENTE)
 
 }
 
-//ELIMINAR CLIENTE
+//ELIMINAR CLIENTE --VERIFICADO
 export async function deleteClient(ID_CLIENTE) {
   const [row] = pool.query('DELETE FROM CLIENTES WHERE ID_CLIENTE = ?', [ID_CLIENTE])
   if (row) {
@@ -65,11 +66,13 @@ export async function deleteClient(ID_CLIENTE) {
   }
 }
 
-//FILTRAR CLIENTES
-export async function busquedaCliente(nombre) {
+//FILTRAR CLIENTES --VERIFICADO
+export async function busquedaCliente(valor) {
   const [row] = await pool.query(
-    "SELECT ID_CLIENTE, NOMBRE, TELEFONO, EMAIL, DIRECCION, FECHA_REGISTRO FROM CLIENTES WHERE NOMBRE LIKE ?",
-    [`%${nombre}%`]
+    `SELECT ID_CLIENTE, CEDULA, NOMBRE, TELEFONO, EMAIL, DIRECCION, FECHA_REGISTRO 
+     FROM CLIENTES 
+     WHERE NOMBRE LIKE ? OR CEDULA LIKE ?`,
+    [`%${valor}%`, `%${valor}%`]
   );
   return row;
 }
