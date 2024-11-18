@@ -93,47 +93,58 @@ CREATE TABLE IF NOT EXISTS TOKENS (
 
 DELIMITER //
 
-IF NOT EXISTS (SELECT * FROM information_schema.TRIGGERS WHERE TRIGGER_NAME = 'actualizar_monto_pendiente') THEN
-    CREATE TRIGGER actualizar_monto_pendiente
-    AFTER INSERT ON PAGOS
-    FOR EACH ROW
-    BEGIN
-        DECLARE monto_pendiente_actual DECIMAL(10, 2);
-        SELECT MONTO_PENDIENTE INTO monto_pendiente_actual
-        FROM VENTAS
-        WHERE ID_VENTA = NEW.VENTA_ID;
-
-        UPDATE VENTAS
-        SET MONTO_PENDIENTE = monto_pendiente_actual - NEW.MONTO_ABONADO
-        WHERE ID_VENTA = NEW.VENTA_ID;
-
-        IF (monto_pendiente_actual - NEW.MONTO_ABONADO) <= 0 THEN
-            UPDATE VENTAS
-            SET ESTADO_PAGO = 'PAGADO', MONTO_PENDIENTE = 0
+        CREATE TRIGGER actualizar_monto_pendiente
+        AFTER INSERT ON PAGOS
+        FOR EACH ROW
+        BEGIN
+            -- Obtener el monto pendiente actual de la venta
+            DECLARE monto_pendiente_actual DECIMAL(10, 2);
+            SELECT MONTO_PENDIENTE INTO monto_pendiente_actual
+            FROM VENTAS
             WHERE ID_VENTA = NEW.VENTA_ID;
-        END IF;
-    END;
-END IF //
+            
+            -- Actualizar el monto pendiente en la tabla VENTAS
+            UPDATE VENTAS
+            SET MONTO_PENDIENTE = monto_pendiente_actual - NEW.MONTO_ABONADO
+            WHERE ID_VENTA = NEW.VENTA_ID;
 
-IF NOT EXISTS (SELECT * FROM information_schema.TRIGGERS WHERE TRIGGER_NAME = 'actualizar_estado_y_monto_pendiente_pagos') THEN
-    CREATE TRIGGER actualizar_estado_y_monto_pendiente_pagos
-    BEFORE INSERT ON PAGOS
-    FOR EACH ROW
-    BEGIN
-        DECLARE estado_actual VARCHAR(10);
-        DECLARE monto_pendiente_actual DECIMAL(10, 2);
+            -- Verificar si el monto pendiente es 0 y actualizar el estado de pago a "PAGADO"
+            IF (monto_pendiente_actual - NEW.MONTO_ABONADO) <= 0 THEN
+                UPDATE VENTAS
+                SET ESTADO_PAGO = 'PAGADO', MONTO_PENDIENTE = 0
+                WHERE ID_VENTA = NEW.VENTA_ID;
+            END IF;
+        END //
 
-        SELECT ESTADO_PAGO, MONTO_PENDIENTE INTO estado_actual, monto_pendiente_actual
-        FROM VENTAS
-        WHERE ID_VENTA = NEW.VENTA_ID;
+        DELIMITER ;
 
-        SET NEW.ESTADO_VENTA = estado_actual;
-        SET NEW.MONTO_PENDIENTE_AL_MOMENTO = monto_pendiente_actual;
 
-        IF (monto_pendiente_actual - NEW.MONTO_ABONADO) <= 0 THEN
-            SET NEW.ESTADO_VENTA = 'PAGADO';
-        END IF;
-    END;
-END IF //
+    --TRIGER PAGOS
+    DELIMITER //
 
-DELIMITER ;
+        CREATE TRIGGER actualizar_estado_y_monto_pendiente_pagos
+        BEFORE INSERT ON PAGOS
+        FOR EACH ROW
+        BEGIN
+            DECLARE estado_actual VARCHAR(10);
+            DECLARE monto_pendiente_actual DECIMAL(10, 2);
+
+            -- Obtener el estado actual y el monto pendiente de la venta desde la tabla VENTAS
+            SELECT ESTADO_PAGO, MONTO_PENDIENTE INTO estado_actual, monto_pendiente_actual
+            FROM VENTAS
+            WHERE ID_VENTA = NEW.VENTA_ID;
+
+            -- Asignar estos valores a las columnas de la tabla PAGOS para el nuevo registro
+            SET NEW.ESTADO_VENTA = estado_actual;
+            SET NEW.MONTO_PENDIENTE_AL_MOMENTO = monto_pendiente_actual;
+
+            -- Verificar si el monto pendiente después del abono es 0
+            IF (monto_pendiente_actual - NEW.MONTO_ABONADO) <= 0 THEN
+                -- Si el monto pendiente es 0 o menos, actualizar el estado de pago a 'PAGADO'
+                SET NEW.ESTADO_VENTA = 'PAGADO';
+            END IF;
+
+            -- No realizamos actualizaciones en la tabla VENTAS aquí, solo actualizamos la tabla PAGOS
+        END //
+
+    DELIMITER ;
