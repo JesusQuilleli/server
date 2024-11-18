@@ -83,11 +83,12 @@ routerProducts.get("/filtrarCategorias/:adminId", async (req, res) => {
 });
 
 //BUSQUEDA EN TIEMPO REAL --VERIFICADO
-routerProducts.get("/buscarProductos", async (req, res) => {
+routerProducts.get("/buscarProductos/:adminId", async (req, res) => {
   const { nombre } = req.query;
+  const adminId = req.params.adminId;
 
   try {
-    const response = await busquedaProductos(nombre);
+    const response = await busquedaProductos(nombre, adminId);
     res.status(200).send({ message: "Busqueda Exitosa", response });
   } catch (error) {
     console.log("Error en la busqueda", error);

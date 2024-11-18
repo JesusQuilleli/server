@@ -3,109 +3,120 @@ import { pool } from "./../helpers/index.js";
 //AGREGAR AL DOCKER PARA LAS NOTIFICACIONES
 import { Expo } from "expo-server-sdk";
 
-//GUARDAR TOKEN EN LA BASE DE DATOS --VERIFICADO
 export async function guardarToken(administrador_id, token) {
   try {
-    // Primero, verifica si el token ya existe para el administrador
+    // Verificar si el token ya existe para este administrador
     const [rows] = await pool.query(
-      "SELECT * FROM tokens WHERE administrador_id = ? AND token = ?",
+      "SELECT * FROM TOKENS WHERE ADMINISTRADOR_ID = ? AND TOKEN = ?",
       [administrador_id, token]
     );
 
-    // Si ya existe un token para ese administrador, no lo guardamos
     if (rows.length > 0) {
-      console.log("El token ya está registrado para este administrador");
-      return rows[0].id; // Retorna el ID del token existente si lo encuentras
+      console.log("El token ya está registrado para este administrador.");
+      return rows[0].id; // Retorna el ID del token existente
     }
 
-    // Si no existe el token, insertamos un nuevo registro
+    // Insertar un nuevo token si no existe
     const [result] = await pool.query(
-      "INSERT INTO tokens (administrador_id, token) VALUES (?, ?)",
+      "INSERT INTO TOKENS (ADMINISTRADOR_ID, TOKEN) VALUES (?, ?)",
       [administrador_id, token]
     );
-    console.log("Token guardado exitosamente");
+
+    console.log("Token guardado exitosamente.");
     return result.insertId;
   } catch (error) {
-    console.error("Error al guardar el token:", error);
-    throw error;
+    console.error("Error al guardar el token:", error.message || error);
+    throw new Error("Error al guardar el token.");
   }
-};
+}
 
-//ENVIAR MENSAJE --VERIFICADO
 const enviarNotificacionPush = async (message) => {
   const expo = new Expo();
 
-  // Obtener todos los tokens de la base de datos
-  const [tokens] = await pool.query("SELECT token FROM tokens");
+  try {
+    const [tokens] = await pool.query("SELECT TOKEN FROM TOKENS");
 
-  // Asegúrate de que hay tokens para enviar
-  if (!tokens || tokens.length === 0) {
-    console.log("No hay tokens para enviar notificaciones");
-    return;
-  }
+    if (!tokens || tokens.length === 0) {
+      console.log("No hay tokens para enviar notificaciones.");
+      return;
+    }
 
-  const pushMessages = tokens
-    .map((tokenRow) => {
-      // Verificar si el token es válido
-      if (!Expo.isExpoPushToken(tokenRow.token)) {
-        console.log(`Token no válido: ${tokenRow.token}`);
-        return null;
-      }
+    const pushMessages = tokens
+      .map(({ TOKEN }) => {
+        if (!Expo.isExpoPushToken(TOKEN)) {
+          console.log(`Token no válido: ${TOKEN}`);
+          return null;
+        }
+        return {
+          to: TOKEN,
+          sound: "default",
+          title: "¡Atención!",
+          body: message,
+          data: { extraData: "extra" },
+        };
+      })
+      .filter(Boolean);
 
-      return {
-        to: tokenRow.token,
-        sound: "default",
-        title: "¡Atención!",
-        body: message, // El mensaje dinámico
-        data: { extraData: "extra" },
-      };
-    })
-    .filter(Boolean); // Elimina valores nulos (tokens no válidos)
-
-  // Si hay mensajes válidos, envíalos
-  if (pushMessages.length > 0) {
-    try {
+    if (pushMessages.length > 0) {
       const chunks = expo.chunkPushNotifications(pushMessages);
-      const tickets = [];
 
       for (let chunk of chunks) {
         try {
           const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
-          tickets.push(...ticketChunk);
+          console.log("Notificaciones enviadas:", ticketChunk);
         } catch (error) {
-          console.error("Error al enviar notificación:", error);
+          console.error(
+            "Error al enviar notificación:",
+            error.message || error
+          );
         }
       }
-    } catch (error) {
-      console.error("Error al enviar las notificaciones:", error);
+    } else {
+      console.log("No hay notificaciones válidas para enviar.");
     }
+  } catch (error) {
+    console.error("Error al enviar notificaciones:", error.message || error);
   }
 };
 
-// VERIFICAR INVENTARIO DE PRODUCTOS POR ID PARA LAS NOTIFICACIONES --VERIFICADO
 export async function verificarInventario(id_admin) {
   try {
-    const limiteStockBajo = 5; // Definir el límite de stock bajo
+    const limiteStockBajo = 5; // Límite para stock bajo
     const [productos] = await pool.query(
-      "SELECT ID_PRODUCTO, CATEGORIA_ID, C.NOMBRE AS CATEGORIA, P.NOMBRE AS PRODUCTO, P.DESCRIPCION, P.PRECIO, P.CANTIDAD, P.IMAGEN FROM PRODUCTOS P JOIN CATEGORIAS C ON P.CATEGORIA_ID = C.ID_CATEGORIA WHERE P.ADMINISTRADOR_ID = ? AND P.CANTIDAD < ?",
+      `SELECT 
+         ID_PRODUCTO, 
+         CATEGORIA_ID, 
+         C.NOMBRE AS CATEGORIA, 
+         P.NOMBRE AS PRODUCTO, 
+         P.DESCRIPCION, 
+         P.PRECIO, 
+         P.CANTIDAD, 
+         P.IMAGEN 
+       FROM 
+         PRODUCTOS P 
+       JOIN 
+         CATEGORIAS C 
+       ON 
+         P.CATEGORIA_ID = C.ID_CATEGORIA 
+       WHERE 
+         P.ADMINISTRADOR_ID = ? AND P.CANTIDAD < ?`,
       [id_admin, limiteStockBajo]
     );
 
     if (productos.length > 0) {
-      // Envía notificación para cada producto con bajo stock
-      for (let producto of productos) {
-        let mensaje;
-        // Verifica si el producto está agotado
+      // Crear una lista de mensajes para notificaciones
+      const mensajes = productos.map((producto) => {
         if (producto.CANTIDAD === 0) {
-          mensaje = `¡Atención! El producto "${producto.PRODUCTO}" está agotado.`;
+          return `¡Atención! El producto "${producto.PRODUCTO}" está agotado.`;
+        } else {
+          return `¡Atención! El producto "${producto.PRODUCTO}" tiene pocas unidades disponibles. Solo quedan ${producto.CANTIDAD} unidades.`;
         }
-        // Verifica si el producto tiene pocas unidades (menor a 5 pero mayor que 0)
-        else if (producto.CANTIDAD < 5) {
-          mensaje = `¡Atención! El producto "${producto.PRODUCTO}" tiene pocas unidades disponibles. Solo quedan ${producto.CANTIDAD} unidades.`;
-        }
+      });
 
-        await enviarNotificacionPush(mensaje);
-      }
+      // Enviar todas las notificaciones en paralelo
+      await Promise.all(
+        mensajes.map((mensaje) => enviarNotificacionPush(mensaje))
+      );
 
       return productos; // Devuelve los productos con bajo stock
     } else {
@@ -113,7 +124,7 @@ export async function verificarInventario(id_admin) {
       return [];
     }
   } catch (error) {
-    console.error("Error al verificar inventario:", error);
-    throw error;
+    console.error("Error al verificar inventario:", error.message || error);
+    throw new Error("Error al verificar el inventario.");
   }
-};
+}

@@ -106,11 +106,28 @@ export async function viewProductsCategory(id_categoria, id_admin) {
   return row;
 }
 
-//BUSCAR PRODUCTOS OK --VERIFICADO
-export async function busquedaProductos(nombre) {
+// BUSCAR PRODUCTOS FILTRADOS POR ADMINISTRADOR --VERIFICADO
+export async function busquedaProductos(nombre, administrador_id) {
   const [row] = await pool.query(
-    "SELECT P.ID_PRODUCTO, P.CATEGORIA_ID, C.NOMBRE AS CATEGORIA, P.NOMBRE AS PRODUCTO,P.PRECIO_COMPRA, P.DESCRIPCION, P.PRECIO, P.CANTIDAD, P.IMAGEN FROM PRODUCTOS P JOIN CATEGORIAS C ON P.CATEGORIA_ID = C.ID_CATEGORIA WHERE P.NOMBRE LIKE ?",
-    [`%${nombre}%`]
+    `SELECT 
+       P.ID_PRODUCTO, 
+       P.CATEGORIA_ID, 
+       C.NOMBRE AS CATEGORIA, 
+       P.NOMBRE AS PRODUCTO, 
+       P.PRECIO_COMPRA, 
+       P.DESCRIPCION, 
+       P.PRECIO, 
+       P.CANTIDAD, 
+       P.IMAGEN 
+     FROM 
+       PRODUCTOS P 
+     JOIN 
+       CATEGORIAS C 
+     ON 
+       P.CATEGORIA_ID = C.ID_CATEGORIA 
+     WHERE 
+       P.NOMBRE LIKE ? AND P.ADMINISTRADOR_ID = ?`,
+    [`%${nombre}%`, administrador_id]
   );
   return row;
 }
