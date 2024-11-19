@@ -5,6 +5,8 @@ import cron from "node-cron";
 import bcrypt from "bcrypt";
 import { pool } from "../helpers/index.js";
 
+import { findAdminByEmail } from "../controllers/FunctionsAuth.js";
+
 var routesRestorePassword = express.Router();
 
 // Configura el transporte para enviar correos
@@ -33,6 +35,14 @@ cron.schedule('*/2 * * * *', async () => {
    if (!email) {
      return res.status(400).json({ error: "Correo electrónico requerido" });
    }
+
+   const user = await findAdminByEmail(email);
+
+  if(!user){
+    return res
+    .status(404)
+    .send({ message: "Correo no registrado. Debes registrarte." });
+  }
  
    try {
      // Verifica si el correo está registrado
