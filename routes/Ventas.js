@@ -15,7 +15,7 @@ import {
 const routesVentas = express.Router();
 
 //EDITAR PRODUCTOS SELECCIONADOS EN EL CARRITO --VERIFICADO
-app.put("/updateProductosStock", async (req, res) => {
+routesVentas.put("/updateProductosStock", async (req, res) => {
   try {
     const productosCarrito = req.body; // Array de productos con ID_PRODUCTO y CANTIDAD
 
