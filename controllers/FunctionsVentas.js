@@ -1,12 +1,33 @@
 import { pool } from "./../helpers/index.js"
 
-//SUMAR O RESTAR PRODUCTO SEGUN LA VENTA --VERIFICADO
-export async function editStockProducto(cantidad, ID_PRODUCTO) {
+//RESTAR PRODUCTO SEGUN LA VENTA --VERIFICADO
+export async function editStockProductos(productos) {
   try {
-    const [results] = await pool.query(
-      "UPDATE PRODUCTOS SET CANTIDAD = CANTIDAD + ? WHERE ID_PRODUCTO = ?",
-      [cantidad, ID_PRODUCTO]
-    );
+    if (!productos || productos.length === 0) {
+      throw new Error("No se proporcionaron productos para actualizar.");
+    }
+
+    // Construir la consulta SQL dinámicamente
+    const ids = productos.map((p) => p.ID_PRODUCTO).join(", ");
+    const casos = productos
+      .map(
+        (p) =>
+          `WHEN ID_PRODUCTO = ${pool.escape(p.ID_PRODUCTO)} THEN CANTIDAD - ${pool.escape(
+            p.CANTIDAD
+          )}`
+      )
+      .join(" ");
+
+    const query = `
+      UPDATE PRODUCTOS
+      SET CANTIDAD = CASE
+        ${casos}
+        ELSE CANTIDAD
+      END
+      WHERE ID_PRODUCTO IN (${ids});
+    `;
+
+    const [results] = await pool.query(query);
 
     if (results.affectedRows > 0) {
       return results;
@@ -14,8 +35,8 @@ export async function editStockProducto(cantidad, ID_PRODUCTO) {
       return null;
     }
   } catch (err) {
-    console.error("Error al Editar producto", err);
-    throw err; // Lanza el error para que sea manejado en el endpoint
+    console.error("Error al editar productos", err);
+    throw err;
   }
 }
 
@@ -50,16 +71,34 @@ export async function realizarVenta(
 }
 
 //PROCESAR PRODUCTOS VENDIDOS EN LA VENTA --VERIFICADO
-export async function productosVendidos(VENTA_ID, PRODUCTO_ID, CANTIDAD) {
-  const [result] = await pool.query(
-    "INSERT INTO VENTAS_PRODUCTOS (VENTA_ID, PRODUCTO_ID, CANTIDAD) VALUES (?,?,?)",
-    [VENTA_ID, PRODUCTO_ID, CANTIDAD]
-  );
+export async function productosVendidos(VENTA_ID, productos) {
+  try {
+    if (!productos || productos.length === 0) {
+      throw new Error("No se proporcionaron productos para registrar.");
+    }
 
-  if (result) {
-    return result;
-  } else {
-    return null;
+    const values = productos
+      .map(
+        (p) =>
+          `(${pool.escape(VENTA_ID)}, ${pool.escape(p.ID_PRODUCTO)}, ${pool.escape(p.CANTIDAD)})`
+      )
+      .join(", ");
+
+    const query = `
+      INSERT INTO VENTAS_PRODUCTOS (VENTA_ID, PRODUCTO_ID, CANTIDAD)
+      VALUES ${values};
+    `;
+
+    const [result] = await pool.query(query);
+
+    if (result.affectedRows > 0) {
+      return result;
+    } else {
+      return null;
+    }
+  } catch (err) {
+    console.error("Error al registrar productos vendidos", err);
+    throw err;
   }
 }
 

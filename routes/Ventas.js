@@ -1,7 +1,7 @@
 import express from "express";
 
 import {
-  editStockProducto,
+  editStockProductos,
   realizarVenta,
   productosVendidos,
   infoResumidaVenta,
@@ -14,32 +14,29 @@ import {
 
 const routesVentas = express.Router();
 
-//EDITAR PRODUCTOS SELECCIONADOS EN EL CARRITO + O - --VERIFICADO
-routesVentas.put("/updateProductoStock/:id_producto", async (req, res) => {
+//EDITAR PRODUCTOS SELECCIONADOS EN EL CARRITO --VERIFICADO
+app.put("/updateProductosStock", async (req, res) => {
   try {
-    const { cantidad } = req.body; // La cantidad a actualizar
-    const productoID = req.params.id_producto;
+    const productosCarrito = req.body; // Array de productos con ID_PRODUCTO y CANTIDAD
 
-    // Validar que la cantidad sea un número y no nulo
-    if (typeof cantidad !== "number" || cantidad == null) {
-      return res
-        .status(400)
-        .send({ message: "Cantidad debe ser un número válido." });
+    if (!Array.isArray(productosCarrito) || productosCarrito.length === 0) {
+      return res.status(400).send({ message: "Se requiere un array de productos válido." });
     }
 
-    const resultado = await editStockProducto(cantidad, productoID);
+    const resultado = await editStockProductos(productosCarrito);
 
     if (resultado) {
-      res
-        .status(200)
-        .send({ message: "Producto Modificado Correctamente", resultado });
+      res.status(200).send({
+        message: "Productos actualizados correctamente.",
+        resultado,
+      });
     } else {
-      res
-        .status(404)
-        .send({ message: "Producto no encontrado o no modificado." });
+      res.status(404).send({
+        message: "No se pudieron actualizar los productos. Verifica los IDs.",
+      });
     }
   } catch (err) {
-    console.error("Error al Modificar Producto", err);
+    console.error("Error al actualizar productos", err);
     res.status(500).send({ message: "Error interno del servidor." });
   }
 });
@@ -83,14 +80,22 @@ routesVentas.post("/procesarVenta", async (req, res) => {
 //INSERTAR PRODUCTOS RELACIONADOS CON LA VENTA --VERIFICADO
 routesVentas.post("/ventaProductos", async (req, res) => {
   try {
-    const { ventaId, productoId, cantidad } = req.body;
+    const { ventaId, productos } = req.body; // `productos` es un array [{ ID_PRODUCTO, CANTIDAD }]
 
-    const response = await productosVendidos(ventaId, productoId, cantidad);
+    if (!ventaId || !Array.isArray(productos) || productos.length === 0) {
+      return res.status(400).send({
+        message: "Se requiere un ID de venta válido y un array de productos.",
+      });
+    }
+
+    const response = await productosVendidos(ventaId, productos);
+
     res
       .status(200)
-      .send({ message: "Productos Registrados con Exito", response });
+      .send({ message: "Productos registrados con éxito", response });
   } catch (err) {
-    console.log("Error al Registrar Productos", err);
+    console.error("Error al registrar productos", err);
+    res.status(500).send({ message: "Error interno del servidor." });
   }
 });
 

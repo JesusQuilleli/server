@@ -139,11 +139,11 @@ routerProducts.post("/registerProduct", async (req, res) => {
 routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
   const { categoria, nombre, descripcion, precioCompra, precio, cantidad } =
     req.body;
-  const imagen = req.files?.imagen; // Asegúrate de que req.files esté definido
+  const imagen = req.files?.imagen;
   const productId = req.params.id_producto;
 
   try {
-    let nombreUnico;
+    let nombreUnico = null;
 
     // Verifica si se ha enviado una nueva imagen
     if (imagen) {
@@ -160,7 +160,7 @@ routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
       parseFloat(precioCompra),
       parseFloat(precio),
       parseInt(cantidad),
-      nombreUnico || null, // Solo se actualiza la imagen si se ha enviado una nueva
+      nombreUnico,
       productId
     );
 
@@ -168,7 +168,13 @@ routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
       .status(200)
       .send({ message: "Producto Modificado Correctamente", resultado });
   } catch (error) {
-    console.log("Error al Modificar Producto", error);
+    // Verifica si el error es de red (por ejemplo, ECONNREFUSED)
+    if (error.code === "ECONNREFUSED" || error.message.includes("Network Error")) {
+      console.error("Fallo en la conexión:", error);
+      return res.status(500).send({ message: "Fallo en la conexión, intente nuevamente." });
+    }
+
+    console.error("Error al Modificar Producto:", error); // Imprimir el error completo
     res
       .status(500)
       .send({ message: "Error al modificar producto.", error: error.message });

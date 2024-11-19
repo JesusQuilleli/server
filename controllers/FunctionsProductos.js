@@ -193,7 +193,8 @@ export async function busquedaProductosPorVenta(idVenta, idAdministrador) {
   try {
     const [rows] = await pool.query(
       `SELECT 
-          VENTAS.ID_VENTA, 
+          VENTAS.ID_VENTA,
+          PRODUCTOS.ID_PRODUCTO,
           PRODUCTOS.NOMBRE AS PRODUCTO, 
           VENTAS_PRODUCTOS.CANTIDAD
        FROM 
