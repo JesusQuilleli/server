@@ -37,20 +37,32 @@ routerAuth.post("/registerAdmin", async (req, res) => {
 // PETICIÓN PARA VERIFICAR SI LOS DATOS INGRESADOS SON CORRECTOS Y AUTENTICAR INICIO DE SESIÓN --VERIFICADO
 routerAuth.post("/autenticacionInicio", async (req, res) => {
   const { email, password } = req.body;
+
   try {
+    // Verificar si el correo ya está registrado
+    const user = await findAdminByEmail(email);
+
+    if (!user) {
+      // Si el correo no está registrado, devolver mensaje indicando que debe registrarse
+      return res
+        .status(404)
+        .send({ message: "Correo no registrado. Debes registrarte." });
+    }
+
+    // Si el correo está registrado, proceder a la autenticación con la contraseña
     const resultado = await checkUser(email, password);
 
     if (resultado) {
       // Si la autenticación fue exitosa, devolver el ID_ADMINISTRADOR y un mensaje de éxito
       res.status(200).send({ message: "Autenticado con éxito", resultado });
     } else {
-      // Si no fue exitoso, devolver null y un mensaje de error
+      // Si no fue exitoso, devolver un mensaje de error
       res
         .status(401)
         .send({ message: "Email o contraseña incorrectos", resultado: null });
     }
   } catch (error) {
-    console.log("Ha ocurrido un error al Autenticar", error);
+    console.log("Ha ocurrido un error al autenticar", error);
     res.status(500).send("Error al autenticar usuario");
   }
 });

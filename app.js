@@ -6,15 +6,15 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import path from "path";
 
-
 //IMPORTS RUTAS
 import { routerAuth } from "./routes/Auth.js";
 import { routerProducts } from "./routes/Products.js";
 import { routesClients } from "./routes/Clients.js";
 import { routesVentas } from "./routes/Ventas.js";
-import { routesTasa } from './routes/Tasas.js'
-import { routesPagos } from './routes/Pagos.js'
+import { routesTasa } from "./routes/Tasas.js";
+import { routesPagos } from "./routes/Pagos.js";
 import { routesNotificaciones } from "./routes/Notificaciones.js";
+import { routesRestorePassword } from "./routes/restorePassword.js";
 
 //PUERTO DESDE EL .ENV
 const PORT = process.env.MYSQLDB_PORT_NODE;
@@ -57,13 +57,15 @@ app.use("/", routesPagos);
 //RUTAS NOTIFICACIONES --VERIFICADO
 app.use("/", routesNotificaciones);
 
+//RUTA RESTORE PASSWORD
+app.use("/", routesRestorePassword);
+
 //PRUEBA
-app.get('/saludo', (req,res) => {
+app.get("/saludo", (req, res) => {
   try {
-    res.json('Hola Julian desde Internet :D');
-  } catch(err) {
+    res.json("Hola Julian desde Internet :D");
+  } catch (err) {
     console.log("Error", err);
-    
   }
 });
 
