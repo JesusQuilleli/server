@@ -1,5 +1,6 @@
 import express from "express";
 import fs from 'fs'; 
+import sharp from "sharp";
 
 import {
   loadCategory,
@@ -11,7 +12,8 @@ import {
   eliminarProducto,
   insertCategorias,
   deleteCategoria,
-  busquedaProductosPorVenta
+  busquedaProductosPorVenta,
+  obtenerProductoPorId
 } from "./../controllers/FunctionsProductos.js";
 
 var routerProducts = express.Router();
@@ -97,20 +99,33 @@ routerProducts.get("/buscarProductos/:adminId", async (req, res) => {
 
 //REGISTRAR PRODUCTOS --VERIFICADO
 routerProducts.post("/registerProduct", async (req, res) => {
-  const { categoria, nombre, descripcion, precioCompra, precio, cantidad, adminId } =
-    req.body;
+  const {
+    categoria,
+    nombre,
+    descripcion,
+    precioCompra,
+    precio,
+    cantidad,
+    adminId,
+  } = req.body;
   const imagen = req.files?.imagen;
 
   try {
     let nombreUnico = null;
 
-    // Verifica si la imagen fue subida
     if (imagen) {
-      // Si hay imagen, genera un nombre único y guarda la imagen
-      nombreUnico = `${Date.now()}-${imagen.name}`;
+      // Genera un nombre único para la imagen WebP
+      const extension = path.extname(imagen.name); // Extrae la extensión original
+      const baseName = path.basename(imagen.name, extension); // Nombre sin extensión
+      nombreUnico = `${Date.now()}-${baseName}.webp`;
 
-      // Mueve la imagen a la carpeta 'uploads'
-      await imagen.mv(`./uploads/${nombreUnico}`);
+      // Ruta para guardar la imagen convertida
+      const rutaDestino = `./uploads/${nombreUnico}`;
+
+      // Convierte la imagen a WebP usando Sharp
+      await sharp(imagen.data) // `imagen.data` contiene el buffer de la imagen
+        .webp({ quality: 100 }) // Ajusta la calidad según sea necesario
+        .toFile(rutaDestino);
     }
 
     const resultado = await insertProducts(
@@ -145,11 +160,38 @@ routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
   try {
     let nombreUnico = null;
 
+    // Obtener el producto actual de la base de datos (incluyendo su imagen)
+    const productoActual = await obtenerProductoPorId(productId); // Función que obtiene el producto actual por su ID
+     
+
+    if (!productoActual) {
+      return res.status(404).send({ message: "Producto no encontrado." });
+    }
+
     // Verifica si se ha enviado una nueva imagen
     if (imagen) {
-      nombreUnico = `${Date.now()}-${imagen.name}`;
-      // Mueve la imagen a la carpeta 'uploads'
-      await imagen.mv(`./uploads/${nombreUnico}`);
+      // Genera un nombre único para la nueva imagen
+      const extension = path.extname(imagen.name); // Extrae la extensión
+      const baseName = path.basename(imagen.name, extension); // Nombre sin extensión
+      nombreUnico = `${Date.now()}-${baseName}.webp`;
+
+      const rutaDestino = `./uploads/${nombreUnico}`;
+
+      // Convierte la nueva imagen a WebP y guárdala
+      await sharp(imagen.data)
+        .webp({ quality: 80 }) // Ajusta la calidad según sea necesario
+        .toFile(rutaDestino);
+
+      // Elimina la imagen antigua si existe
+      if (productoActual.IMAGEN) {
+        const rutaAntigua = `./uploads/${productoActual.IMAGEN}`;
+        if (fs.existsSync(rutaAntigua)) {
+          fs.unlinkSync(rutaAntigua); // Borra la imagen antigua
+        }
+      }
+    } else {
+      // Si no se envía una nueva imagen, conserva la actual
+      nombreUnico = productoActual.IMAGEN;
     }
 
     // Actualiza el producto en la base de datos
@@ -168,13 +210,13 @@ routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
       .status(200)
       .send({ message: "Producto Modificado Correctamente", resultado });
   } catch (error) {
-    // Verifica si el error es de red (por ejemplo, ECONNREFUSED)
+    // Manejo de errores de red
     if (error.code === "ECONNREFUSED" || error.message.includes("Network Error")) {
       console.error("Fallo en la conexión:", error);
       return res.status(500).send({ message: "Fallo en la conexión, intente nuevamente." });
     }
 
-    console.error("Error al Modificar Producto:", error); // Imprimir el error completo
+    console.error("Error al Modificar Producto:", error);
     res
       .status(500)
       .send({ message: "Error al modificar producto.", error: error.message });
