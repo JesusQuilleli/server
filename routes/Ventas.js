@@ -105,7 +105,13 @@ routesVentas.get("/infoResum/:adminId", async (req, res) => {
     const adminId = req.params.adminId;
     const response = await infoResumidaVenta(adminId);
 
+    if(response){
     res.status(200).send({ message: "Ver Venta Resumida Lista", response });
+
+    } else {
+      res.status(200).send({ message: "No hay Ventas", response });
+    }
+
   } catch (err) {
     console.log("Error en ver Venta Resumida", err);
   }
