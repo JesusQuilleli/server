@@ -196,7 +196,8 @@ export async function busquedaProductosPorVenta(idVenta, idAdministrador) {
           VENTAS.ID_VENTA,
           PRODUCTOS.ID_PRODUCTO,
           PRODUCTOS.PRECIO,
-          PRODUCTOS.NOMBRE AS PRODUCTO, 
+          PRODUCTOS.NOMBRE AS PRODUCTO,
+          PRODUCTOS.DESCRIPCION, 
           VENTAS_PRODUCTOS.CANTIDAD
        FROM 
           VENTAS_PRODUCTOS
