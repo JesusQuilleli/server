@@ -1,5 +1,5 @@
 import express from "express";
-import fs from 'fs'; 
+import fs from "fs";
 import sharp from "sharp";
 import path from "path";
 
@@ -14,7 +14,7 @@ import {
   insertCategorias,
   deleteCategoria,
   busquedaProductosPorVenta,
-  obtenerProductoPorId
+  obtenerProductoPorId,
 } from "./../controllers/FunctionsProductos.js";
 
 var routerProducts = express.Router();
@@ -164,7 +164,6 @@ routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
 
     // Obtener el producto actual de la base de datos (incluyendo su imagen)
     const productoActual = await obtenerProductoPorId(productId); // Función que obtiene el producto actual por su ID
-     
 
     if (!productoActual) {
       return res.status(404).send({ message: "Producto no encontrado." });
@@ -193,7 +192,11 @@ routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
       }
     } else {
       // Si no se envía una nueva imagen, conserva la actual
-      nombreUnico = productoActual.IMAGEN;
+      if (productoActual.IMAGEN) {
+        nombreUnico = productoActual.IMAGEN; // Usa la imagen actual
+      } else {
+        nombreUnico = null; // O un valor predeterminado según tu lógica
+      }
     }
 
     // Actualiza el producto en la base de datos
@@ -213,9 +216,14 @@ routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
       .send({ message: "Producto Modificado Correctamente", resultado });
   } catch (error) {
     // Manejo de errores de red
-    if (error.code === "ECONNREFUSED" || error.message.includes("Network Error")) {
+    if (
+      error.code === "ECONNREFUSED" ||
+      error.message.includes("Network Error")
+    ) {
       console.error("Fallo en la conexión:", error);
-      return res.status(500).send({ message: "Fallo en la conexión, intente nuevamente." });
+      return res
+        .status(500)
+        .send({ message: "Fallo en la conexión, intente nuevamente." });
     }
 
     console.error("Error al Modificar Producto:", error);
@@ -237,43 +245,50 @@ routerProducts.delete("/deleteProduct/:id_producto", async (req, res) => {
       if (response.imagen) {
         fs.unlinkSync(`./uploads/${response.imagen}`);
       }
-      
-      res.status(200).send({ message: "Producto Eliminado con Éxito", id: productID });
+
+      res
+        .status(200)
+        .send({ message: "Producto Eliminado con Éxito", id: productID });
     } else {
       res.status(404).send({ message: "No se pudo eliminar el producto" });
     }
   } catch (error) {
     console.log("Error al Eliminar Producto", error);
-    res.status(500).send({ message: "Error al eliminar el producto", error: error.message });
+    res
+      .status(500)
+      .send({ message: "Error al eliminar el producto", error: error.message });
   }
 });
 
 //VER PRODUCTOS POR VENTA --VERIFICADO
-routerProducts.get("/verProductosPorVenta/:adminId/:ventaId", async (req, res) => {
-  const adminId = req.params.adminId;
-  const ventaId = req.params.ventaId;
+routerProducts.get(
+  "/verProductosPorVenta/:adminId/:ventaId",
+  async (req, res) => {
+    const adminId = req.params.adminId;
+    const ventaId = req.params.ventaId;
 
-  try {
-    // Llamamos a la función que obtiene los productos por venta
-    const response = await busquedaProductosPorVenta(ventaId, adminId);
+    try {
+      // Llamamos a la función que obtiene los productos por venta
+      const response = await busquedaProductosPorVenta(ventaId, adminId);
 
-    if (response && response.length > 0) {
-      res.status(200).send({
-        message: "Productos obtenidos con éxito",
-        data: response
-      });
-    } else {
-      res.status(404).send({
-        message: "No se encontraron productos para esta venta",
-        data: []
+      if (response && response.length > 0) {
+        res.status(200).send({
+          message: "Productos obtenidos con éxito",
+          data: response,
+        });
+      } else {
+        res.status(404).send({
+          message: "No se encontraron productos para esta venta",
+          data: [],
+        });
+      }
+    } catch (err) {
+      console.error("Error al obtener los productos por venta:", err);
+      res.status(500).send({
+        message: "Error al obtener los productos por venta",
       });
     }
-  } catch (err) {
-    console.error("Error al obtener los productos por venta:", err);
-    res.status(500).send({
-      message: "Error al obtener los productos por venta"
-    });
   }
-});
+);
 
 export { routerProducts };
