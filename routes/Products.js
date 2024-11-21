@@ -2,6 +2,7 @@ import express from "express";
 import fs from 'fs'; 
 import sharp from "sharp";
 import multer from "multer";
+import path from "path";
 
 import {
   loadCategory,
@@ -18,18 +19,6 @@ import {
 } from "./../controllers/FunctionsProductos.js";
 
 var routerProducts = express.Router();
-
-// Configuración de Multer para manejar la carga de imágenes
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, './uploads/'); // carpeta donde se guardan las imágenes temporales
-  },
-  filename: (req, file, cb) => {
-    const extension = path.extname(file.originalname);
-    const baseName = path.basename(file.originalname, extension);
-    cb(null, `${Date.now()}-${baseName}${extension}`); // Nombre único para evitar conflictos
-  },
-});
 
 const upload = multer({ storage: storage });
 
@@ -113,62 +102,7 @@ routerProducts.get("/buscarProductos/:adminId", async (req, res) => {
 });
 
 //REGISTRAR PRODUCTOS --VERIFICADO
-// routerProducts.post("/registerProduct", async (req, res) => {
-//   const {
-//     categoria,
-//     nombre,
-//     descripcion,
-//     precioCompra,
-//     precio,
-//     cantidad,
-//     adminId,
-//   } = req.body;
-
-//   const imagen = req.files?.imagen;
-
-//   try {
-//     let nombreUnico = null;
-
-//     if (imagen) {
-//       // Genera un nombre único para la imagen WebP
-//       const extension = path.extname(imagen.name); // Extrae la extensión original
-//       const baseName = path.basename(imagen.name, extension); // Nombre sin extensión
-//       nombreUnico = `${Date.now()}-${baseName}.webp`;
-
-//       // Ruta para guardar la imagen convertida
-//       const rutaDestino = `./uploads/${nombreUnico}`;
-
-//       // Convierte la imagen a WebP usando Sharp
-//       await sharp(imagen.data) // `imagen.data` contiene el buffer de la imagen
-//         .webp({ quality: 100 }) // Ajusta la calidad según sea necesario
-//         .toFile(rutaDestino);
-//     }
-
-//     const resultado = await insertProducts(
-//       categoria,
-//       nombre,
-//       descripcion,
-//       precioCompra,
-//       precio,
-//       cantidad,
-//       nombreUnico,
-//       adminId
-//     );
-
-//     res
-//       .status(200)
-//       .send({ message: "Producto Registrado Correctamente", resultado });
-//   } catch (error) {
-//     console.log("Error al Registrar Producto", error);
-//     res
-//       .status(500)
-//       .send({ message: "Error al registrar producto.", error: error.message });
-//   }
-// });
-
-// Ruta para registrar el producto y convertir la imagen
-
-routerProducts.post("/registerProduct", upload.single('imagen'), async (req, res) => {
+routerProducts.post("/registerProduct", async (req, res) => {
   const {
     categoria,
     nombre,
@@ -179,27 +113,24 @@ routerProducts.post("/registerProduct", upload.single('imagen'), async (req, res
     adminId,
   } = req.body;
 
-  const imagen = req.file; // Accedemos al archivo que fue subido por Multer
+  const imagen = req.files?.imagen;
 
   try {
     let nombreUnico = null;
 
     if (imagen) {
-      // Genera el nombre único para la imagen WebP
-      const extension = path.extname(imagen.filename);
-      const baseName = path.basename(imagen.filename, extension);
-      nombreUnico = `${Date.now()}-${baseName}.webp`; // Generamos un nombre único con extensión .webp
+      // Genera un nombre único para la imagen WebP
+      const extension = path.extname(imagen.name); // Extrae la extensión original
+      const baseName = path.basename(imagen.name, extension); // Nombre sin extensión
+      nombreUnico = `${Date.now()}-${baseName}.webp`;
 
       // Ruta para guardar la imagen convertida
       const rutaDestino = `./uploads/${nombreUnico}`;
 
       // Convierte la imagen a WebP usando Sharp
-      await sharp(imagen.path) // Usamos la ruta temporal donde Multer guardó la imagen
-        .webp({ quality: 100 }) // Puedes ajustar la calidad si lo deseas
+      await sharp(imagen.data) // `imagen.data` contiene el buffer de la imagen
+        .webp({ quality: 100 }) // Ajusta la calidad según sea necesario
         .toFile(rutaDestino);
-
-      // Elimina el archivo temporal original después de la conversión
-      fs.unlinkSync(imagen.path); // Borra el archivo temporal original
     }
 
     const resultado = await insertProducts(
@@ -213,10 +144,14 @@ routerProducts.post("/registerProduct", upload.single('imagen'), async (req, res
       adminId
     );
 
-    res.status(200).send({ message: "Producto Registrado Correctamente", resultado });
+    res
+      .status(200)
+      .send({ message: "Producto Registrado Correctamente", resultado });
   } catch (error) {
     console.log("Error al Registrar Producto", error);
-    res.status(500).send({ message: "Error al registrar producto.", error: error.message });
+    res
+      .status(500)
+      .send({ message: "Error al registrar producto.", error: error.message });
   }
 });
 
