@@ -107,9 +107,6 @@ routesVentas.get("/infoResum/:adminId", async (req, res) => {
 
     if(response){
     res.status(200).send({ message: "Ver Venta Resumida Lista", response });
-
-    } else {
-      res.status(200).send({ message: "No hay Ventas", response });
     }
 
   } catch (err) {
