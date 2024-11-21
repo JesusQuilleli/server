@@ -16,6 +16,8 @@ services:
       - 8800:8800
     depends_on:
       - mysqldb
+    volumes:
+      - ./uploads:/app/uploads
     networks:
       - app-network
 
