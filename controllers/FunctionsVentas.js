@@ -112,7 +112,7 @@ export async function infoResumidaVenta(ID_ADMINISTRADOR) {
   if (result) {
     return result;
   } else {
-    return [];
+    return null;
   }
 };
 
