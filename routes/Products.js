@@ -1,7 +1,6 @@
 import express from "express";
 import fs from 'fs'; 
 import sharp from "sharp";
-import multer from "multer";
 import path from "path";
 
 import {
@@ -19,8 +18,6 @@ import {
 } from "./../controllers/FunctionsProductos.js";
 
 var routerProducts = express.Router();
-
-const upload = multer({ storage: storage });
 
 //CARGAR CATEGORIA --VERIFICADO
 routerProducts.get("/cargarCategorias/:adminId", async (req, res) => {
