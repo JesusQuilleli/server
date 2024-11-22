@@ -4,6 +4,8 @@ import {
   registerAdmin,
   checkUser,
   findAdminByEmail,
+  marcarSesionActiva,
+  marcarSesionInactiva
 } from "../controllers/FunctionsAuth.js";
 
 const routerAuth = express.Router();
@@ -43,27 +45,65 @@ routerAuth.post("/autenticacionInicio", async (req, res) => {
     const user = await findAdminByEmail(email);
 
     if (!user) {
-      // Si el correo no está registrado, devolver mensaje indicando que debe registrarse
+      // Respuesta específica para un correo no registrado
       return res
         .status(404)
-        .send({ message: "Correo no registrado. Debes registrarte." });
+        .send({ success: false, message: "Correo no registrado." });
     }
 
-    // Si el correo está registrado, proceder a la autenticación con la contraseña
-    const resultado = await checkUser(email, password);
+    // Verificar si ya tiene una sesión activa
+    if (user.SESION_ACTIVA) {
+      return res
+        .status(403) // Forbidden
+        .send({
+          success: false,
+          message: "Esta cuenta ya tiene una sesión activa.",
+        });
+    }
 
-    if (resultado) {
-      // Si la autenticación fue exitosa, devolver el ID_ADMINISTRADOR y un mensaje de éxito
-      res.status(200).send({ message: "Autenticado con éxito", resultado });
+    // Verificar si la contraseña es correcta
+    const isPasswordCorrect = await checkUser(email, password);
+
+    if (!isPasswordCorrect) {
+      // Respuesta específica para contraseña incorrecta
+      return res
+        .status(401) // Unauthorized
+        .send({ success: false, message: "Contraseña incorrecta." });
+    }
+
+    // Si la autenticación es exitosa, marcar la sesión como activa
+    await marcarSesionActiva(user.ID_ADMINISTRADOR);
+
+    // Respuesta exitosa con los detalles del usuario
+    res.status(200).send({
+      success: true,
+      message: "Autenticado con éxito.",
+      user: { id: user.ID_ADMINISTRADOR, email: user.EMAIL },
+    });
+  } catch (error) {
+    console.error("Error durante la autenticación:", error);
+    res.status(500).send({
+      success: false,
+      message: "Ha ocurrido un error al procesar la solicitud.",
+    });
+  }
+});
+
+//CERRAR SESION
+routerAuth.post("/cerrarSesion", async (req, res) => {
+  const { idAdmin } = req.body;
+
+  try {
+    const respuesta = await marcarSesionInactiva(idAdmin);
+
+    if (respuesta.success) {
+      res.status(200).send({ message: "Sesión cerrada con éxito." });
     } else {
-      // Si no fue exitoso, devolver un mensaje de error
-      res
-        .status(401)
-        .send({ message: "Email o contraseña incorrectos", resultado: null });
+      res.status(404).send({ message: respuesta.message });
     }
   } catch (error) {
-    console.log("Ha ocurrido un error al autenticar", error);
-    res.status(500).send("Error al autenticar usuario");
+    console.error("Error al cerrar sesión:", error.message);
+    res.status(500).send({ message: "Error interno al cerrar sesión." });
   }
 });
 

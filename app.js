@@ -15,6 +15,7 @@ import { routesTasa } from "./routes/Tasas.js";
 import { routesPagos } from "./routes/Pagos.js";
 import { routesNotificaciones } from "./routes/Notificaciones.js";
 import { routesRestorePassword } from "./routes/restorePassword.js";
+import { routesDevoluciones } from "./routes/Devoluciones.js";
 
 //PUERTO DESDE EL .ENV
 const PORT = process.env.MYSQLDB_PORT_NODE;
@@ -59,6 +60,9 @@ app.use("/", routesNotificaciones);
 
 //RUTA RESTORE PASSWORD
 app.use("/", routesRestorePassword);
+
+//RUTA RESTORE PASSWORD
+app.use("/", routesDevoluciones);
 
 //PRUEBA
 app.get("/saludo", (req, res) => {
