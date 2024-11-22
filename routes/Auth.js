@@ -74,15 +74,8 @@ routerAuth.post("/autenticacionInicio", async (req, res) => {
     // Si la autenticación es exitosa, marcar la sesión como activa
     await marcarSesionActiva(user.ID_ADMINISTRADOR);
 
-    // Respuesta exitosa con los detalles del usuario
-    res.status(200).send({
-      success: true,
-      message: "Autenticado con éxito.",
-      resultado: {  // Cambié 'user' por 'resultado'
-        idAdmin: user.ID_ADMINISTRADOR,
-        nombre: user.EMAIL,  // Suponiendo que 'nombre' es el correo del usuario
-      },
-    });
+     // Respuesta exitosa con 'true'
+     res.status(200).send(true);
   } catch (error) {
     console.error("Error durante la autenticación:", error);
     res.status(500).send({
