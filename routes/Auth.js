@@ -78,7 +78,10 @@ routerAuth.post("/autenticacionInicio", async (req, res) => {
     res.status(200).send({
       success: true,
       message: "Autenticado con éxito.",
-      user: { id: user.ID_ADMINISTRADOR, email: user.EMAIL },
+      resultado: {  // Cambié 'user' por 'resultado'
+        idAdmin: user.ID_ADMINISTRADOR,
+        nombre: user.EMAIL,  // Suponiendo que 'nombre' es el correo del usuario
+      },
     });
   } catch (error) {
     console.error("Error durante la autenticación:", error);
