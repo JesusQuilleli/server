@@ -26,25 +26,20 @@ export async function findAdminByEmail(email) {
 };
 
 //MARCAR SESION ACTIVA
-export async function marcarSesionActiva(adminId) {
+async function marcarSesionActiva(adminId) {
   try {
     const [result] = await pool.query(
-      'UPDATE ADMINISTRADORES SET SESION_ACTIVA = TRUE WHERE ID_ADMINISTRADOR = ?',
+      "UPDATE ADMINISTRADORES SET SESION_ACTIVA = 1 WHERE ID_ADMINISTRADOR = ?",
       [adminId]
     );
 
     if (result.affectedRows === 0) {
-      // Si no se actualizó ninguna fila, significa que el ID no existe
       throw new Error(`No se encontró el administrador con ID: ${adminId}`);
     }
 
-    return {
-      success: true,
-      message: `Sesión activada para el administrador con ID: ${adminId}`,
-    };
+    return { success: true, message: "Sesión activada exitosamente." };
   } catch (error) {
     console.error("Error al activar la sesión:", error.message);
-
     return {
       success: false,
       message: "Ocurrió un error al intentar activar la sesión.",
@@ -97,12 +92,19 @@ export async function marcarSesionInactiva(adminId) {
     const passwordCompare = await bcrypt.compare(password, datosAdmin.PASSWORD);
 
     if (passwordCompare) {
-      return {
-        idAdmin: datosAdmin.ID_ADMINISTRADOR,
-        email: datosAdmin.EMAIL,
-        nombre: datosAdmin.NOMBRE,
-        sesionActiva: datosAdmin.SESION_ACTIVA, // Agregar estado de sesión activa
-      };
+      // Si la contraseña es correcta, verificar si la sesión está activa
+      if (datosAdmin.SESION_ACTIVA === 1) {
+        return {error : "Sesion Activa"}; // Sesión ya activa
+      } else {
+        // Si la sesión no está activa, la activamos
+        await marcarSesionActiva(datosAdmin.ID_ADMINISTRADOR); // Llamada a la función para activar la sesión
+        return {
+          idAdmin: datosAdmin.ID_ADMINISTRADOR,
+          email: datosAdmin.EMAIL,
+          nombre: datosAdmin.NOMBRE,
+          sesionActiva: 1, // Ahora la sesión está activa
+        };
+      }
     } else {
       return null; // Contraseña incorrecta
     }

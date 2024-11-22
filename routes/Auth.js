@@ -45,37 +45,36 @@ routerAuth.post("/autenticacionInicio", async (req, res) => {
     const user = await findAdminByEmail(email);
 
     if (!user) {
-      // Respuesta específica para un correo no registrado
       return res
         .status(404)
         .send({ success: false, message: "Correo no registrado." });
     }
 
-    // Verificar si ya tiene una sesión activa
-    if (user.SESION_ACTIVA) {
+    const admin = await checkUser(email, password); // Llamar a checkUser que ya activa la sesión si es necesario
+
+    if (!admin) {
       return res
-        .status(403) // Forbidden
-        .send({
-          success: false,
-          message: "Esta cuenta ya tiene una sesión activa.",
-        });
+        .status(404)
+        .send({ success: false, message: "Correo o contraseña incorrectos." });
     }
 
-    // Verificar si la contraseña es correcta
-    const isPasswordCorrect = await checkUser(email, password);
-
-    if (!isPasswordCorrect) {
-      // Respuesta específica para contraseña incorrecta
+    if (admin.error == 'Sesion Activa') {
       return res
-        .status(401) // Unauthorized
-        .send({ success: false, message: "Contraseña incorrecta." });
+        .status(404)
+        .send({ success: false, message: "Sesion Activa." });
     }
 
-    // Si la autenticación es exitosa, marcar la sesión como activa
-    await marcarSesionActiva(user.ID_ADMINISTRADOR);
-
-     // Respuesta exitosa con 'true'
-     res.status(200).send(true);
+    // Si la sesión no está activa y la autenticación es exitosa, retornamos el estado de la sesión
+    res.status(200).send({
+      success: true,
+      message: "Sesión activada exitosamente.",
+      user: {
+        idAdmin: admin.idAdmin,
+        email: admin.email,
+        nombre: admin.nombre,
+        sesionActiva: admin.sesionActiva,
+      },
+    });
   } catch (error) {
     console.error("Error durante la autenticación:", error);
     res.status(500).send({
