@@ -1,32 +1,36 @@
 import bcrypt from "bcrypt";
-import { pool } from "./../helpers/index.js"
+import { pool } from "./../helpers/index.js";
 
 //FUNCION REGISTRAR ADMINISTRADOR --VERIFICADO
 export async function registerAdmin(name, password, email) {
-   // Encriptar la contraseña
-   const saltRounds = 10;
-   const hashedPassword = await bcrypt.hash(password, saltRounds);
- 
-   // Insertar en la base de datos
-   const [results] = await pool.query(
-     "INSERT INTO ADMINISTRADORES (NOMBRE, PASSWORD, EMAIL) VALUES (?, ?, ?)",
-     [name, hashedPassword, email]
-   );
- 
-   return results;
- };
+  // Encriptar la contraseña
+  const saltRounds = 10;
+  const hashedPassword = await bcrypt.hash(password, saltRounds);
 
- //VALIDAR SI YA EXISTE EL CORREO --VERIFICADO
+  // Insertar en la base de datos
+  const [results] = await pool.query(
+    "INSERT INTO ADMINISTRADORES (NOMBRE, PASSWORD, EMAIL) VALUES (?, ?, ?)",
+    [name, hashedPassword, email]
+  );
+
+  return results;
+}
+
+//VALIDAR SI YA EXISTE EL CORREO --VERIFICADO
 export async function findAdminByEmail(email) {
   const [results] = await pool.query(
-    "SELECT EMAIL FROM ADMINISTRADORES WHERE EMAIL = ?",
+    "SELECT ID_ADMINISTRADOR, NOMBRE, PASSWORD, EMAIL, SESION_ACTIVA FROM ADMINISTRADORES WHERE EMAIL = ?",
     [email]
   );
-  return results.length > 0 ? results[0] : null; // Retorna el usuario si existe o null si no existe
-};
+  if (results.length > 0) {
+    const admin = results[0];
+    return { ...admin, ID_ADMINISTRADOR: admin.ID_ADMINISTRADOR }; // Retorna el objeto completo con el ID_ADMINISTRADOR explícitamente
+  }
+  return null; // Si no se encuentra el usuario, retorna null
+}
 
 //MARCAR SESION ACTIVA
-async function marcarSesionActiva(adminId) {
+export async function marcarSesionActiva(adminId) {
   try {
     const [result] = await pool.query(
       "UPDATE ADMINISTRADORES SET SESION_ACTIVA = 1 WHERE ID_ADMINISTRADOR = ?",
@@ -52,7 +56,7 @@ async function marcarSesionActiva(adminId) {
 export async function marcarSesionInactiva(adminId) {
   try {
     const [result] = await pool.query(
-      'UPDATE ADMINISTRADORES SET SESION_ACTIVA = FALSE WHERE ID_ADMINISTRADOR = ?',
+      "UPDATE ADMINISTRADORES SET SESION_ACTIVA = FALSE WHERE ID_ADMINISTRADOR = ?",
       [adminId]
     );
 
@@ -75,9 +79,9 @@ export async function marcarSesionInactiva(adminId) {
     };
   }
 }
- 
- //VALIDAR USUARIO EN LA BASE DE DATOS, DE LA TABLA ADMINISTRADORES --VERIFICADO
- export async function checkUser(email, password) {
+
+//VALIDAR USUARIO EN LA BASE DE DATOS, DE LA TABLA ADMINISTRADORES --VERIFICADO
+export async function checkUser(email, password) {
   const [rows] = await pool.query(
     `SELECT ID_ADMINISTRADOR, EMAIL, NOMBRE, PASSWORD, SESION_ACTIVA FROM ADMINISTRADORES WHERE EMAIL = ?`,
     [email]
@@ -94,7 +98,7 @@ export async function marcarSesionInactiva(adminId) {
     if (passwordCompare) {
       // Si la contraseña es correcta, verificar si la sesión está activa
       if (datosAdmin.SESION_ACTIVA === 1) {
-        return {error : "Sesion Activa"}; // Sesión ya activa
+        return { error: "Sesion Activa" }; // Sesión ya activa
       } else {
         // Si la sesión no está activa, la activamos
         await marcarSesionActiva(datosAdmin.ID_ADMINISTRADOR); // Llamada a la función para activar la sesión

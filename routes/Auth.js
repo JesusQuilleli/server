@@ -4,7 +4,6 @@ import {
   registerAdmin,
   checkUser,
   findAdminByEmail,
-  marcarSesionActiva,
   marcarSesionInactiva
 } from "../controllers/FunctionsAuth.js";
 
