@@ -54,6 +54,8 @@ routerAuth.post("/autenticacionInicio", async (req, res) => {
 
     if(resultado){
       res.status(200).send({message:"Usuario validado correctamente", resultado})
+    } else {
+      res.status(401).send({ message: "Contraseña Incorrecta", result: null });
     }
    
   } catch (error) {
