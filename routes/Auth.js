@@ -35,7 +35,7 @@ routerAuth.post("/registerAdmin", async (req, res) => {
 });
 
 // PETICIÓN PARA VERIFICAR SI LOS DATOS INGRESADOS SON CORRECTOS Y AUTENTICAR INICIO DE SESIÓN --VERIFICADO
-app.post("/autenticacionInicio", async (req, res) => {
+routerAuth.post("/autenticacionInicio", async (req, res) => {
   const { email, password } = req.body;
 
   try {
