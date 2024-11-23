@@ -48,8 +48,7 @@ export async function checkUser(email, password) {
       return {
         idAdmin: datosAdmin.ID_ADMINISTRADOR,
         email: datosAdmin.EMAIL,
-        nombre: datosAdmin.NOMBRE,
-        sesionActiva: datosAdmin.SESION_ACTIVA, // Agregar estado de sesión activa
+        nombre: datosAdmin.NOMBRE
       };
     } else {
       return null; // Contraseña incorrecta
