@@ -119,9 +119,9 @@ import { pool } from "../helpers/index.js";
         ID_DEVOLUCION,
         CLIENTE,
         FECHA_DEVOLUCION
-       FROM 
-         DEVOLUCIONES 
-       WHERE ADMINISTRADOR_ID = ? AND CLIENTE LIKE ?`,
+      FROM 
+        DEVOLUCIONES 
+      WHERE ADMINISTRADOR_ID = ? AND CLIENTE LIKE ?`,
       [ADMIN_ID, `%${NOMBRE}%`] // Uso de % para búsqueda parcial con LIKE
     );
 
@@ -131,7 +131,6 @@ import { pool } from "../helpers/index.js";
       return [];
     }
 
-    
   } catch (error) {
     console.error("Error al cargar Devoluciones por Cliente", error);
     throw error; // Propaga el error para manejarlo externamente si es necesario
