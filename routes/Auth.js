@@ -1,6 +1,6 @@
 import express from "express";
 import jwt from 'jsonwebtoken';
-import dotenv from "dotenv";
+import dotenv from "dotenv"; //PEDIR AYUDA AL PROFE YOHAN PARA HACER QUE TOME EL VALOR DEL ENV
 
 import {
   registerAdmin,

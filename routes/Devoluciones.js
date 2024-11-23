@@ -4,6 +4,7 @@ import {
   loadDevoluciones,
   deleteDevoluciones,
   procesarDevolucion,
+  verDevolucionesCliente,
 } from "./../controllers/FunctionsDevoluciones.js";
 
 const routesDevoluciones = express.Router();
@@ -68,5 +69,30 @@ routesDevoluciones.delete(
     }
   }
 );
+
+routesDevoluciones.get("/verDevolucionesCliente/:adminId", async (req, res) => {
+  const adminId = req.params.adminId;
+  const { cliente } = req.query;
+  try {
+    const response = await verDevolucionesCliente(adminId, cliente);
+
+    if (response && response.length > 0) {
+      res.status(200).send({
+        message: "Devoluciones Obtenidas",
+        data: response,
+      });
+    } else {
+      res.status(200).send({
+        message: "No se encontró ningúna devolucion",
+        data: [],
+      });
+    }
+  } catch (err) {
+    console.error("Error al obtener las devoluciones", err);
+    res
+      .status(500)
+      .send({ message: "Error al obtener las devoluciones Backend" });
+  }
+});
 
 export { routesDevoluciones };

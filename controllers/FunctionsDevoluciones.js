@@ -111,3 +111,29 @@ import { pool } from "../helpers/index.js";
      return { success: false, message: error.message };
    }
  };
+
+ export async function verDevolucionesCliente(ADMIN_ID, NOMBRE) {
+  try {
+    const [result] = await pool.query(
+      `SELECT 
+        ID_DEVOLUCION,
+        CLIENTE,
+        FECHA_DEVOLUCION
+       FROM 
+         DEVOLUCIONES 
+       WHERE ADMINISTRADOR_ID = ? AND CLIENTE LIKE ?`,
+      [ADMIN_ID, `%${NOMBRE}%`] // Uso de % para búsqueda parcial con LIKE
+    );
+
+    if(result.length > 0){
+      return result;
+    } else {
+      return [];
+    }
+
+    
+  } catch (error) {
+    console.error("Error al cargar Devoluciones por Cliente", error);
+    throw error; // Propaga el error para manejarlo externamente si es necesario
+  }
+};
