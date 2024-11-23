@@ -14,76 +14,25 @@ export async function registerAdmin(name, password, email) {
   );
 
   return results;
-}
+};
 
 //VALIDAR SI YA EXISTE EL CORREO --VERIFICADO
 export async function findAdminByEmail(email) {
   const [results] = await pool.query(
-    "SELECT ID_ADMINISTRADOR, NOMBRE, PASSWORD, EMAIL, SESION_ACTIVA FROM ADMINISTRADORES WHERE EMAIL = ?",
+    "SELECT EMAIL FROM ADMINISTRADORES WHERE EMAIL = ?",
     [email]
   );
   if (results.length > 0) {
     const admin = results[0];
-    return { ...admin, ID_ADMINISTRADOR: admin.ID_ADMINISTRADOR }; // Retorna el objeto completo con el ID_ADMINISTRADOR explícitamente
+    return admin; // Retorna el objeto completo con el ID_ADMINISTRADOR explícitamente
   }
   return null; // Si no se encuentra el usuario, retorna null
-}
-
-//MARCAR SESION ACTIVA
-export async function marcarSesionActiva(adminId) {
-  try {
-    const [result] = await pool.query(
-      "UPDATE ADMINISTRADORES SET SESION_ACTIVA = 1 WHERE ID_ADMINISTRADOR = ?",
-      [adminId]
-    );
-
-    if (result.affectedRows === 0) {
-      throw new Error(`No se encontró el administrador con ID: ${adminId}`);
-    }
-
-    return { success: true, message: "Sesión activada exitosamente." };
-  } catch (error) {
-    console.error("Error al activar la sesión:", error.message);
-    return {
-      success: false,
-      message: "Ocurrió un error al intentar activar la sesión.",
-      error: error.message,
-    };
-  }
-}
-
-//MARCAR SESION INACTIVA
-export async function marcarSesionInactiva(adminId) {
-  try {
-    const [result] = await pool.query(
-      "UPDATE ADMINISTRADORES SET SESION_ACTIVA = FALSE WHERE ID_ADMINISTRADOR = ?",
-      [adminId]
-    );
-
-    if (result.affectedRows === 0) {
-      // Si no se actualizó ninguna fila, significa que el ID no existe
-      throw new Error(`No se encontró el administrador con ID: ${adminId}`);
-    }
-
-    return {
-      success: true,
-      message: `Sesión desactivada para el administrador con ID: ${adminId}`,
-    };
-  } catch (error) {
-    console.error("Error al desactivar la sesión:", error.message);
-
-    return {
-      success: false,
-      message: "Ocurrió un error al intentar desactivar la sesión.",
-      error: error.message,
-    };
-  }
-}
+};
 
 //VALIDAR USUARIO EN LA BASE DE DATOS, DE LA TABLA ADMINISTRADORES --VERIFICADO
 export async function checkUser(email, password) {
   const [rows] = await pool.query(
-    `SELECT ID_ADMINISTRADOR, EMAIL, NOMBRE, PASSWORD, SESION_ACTIVA FROM ADMINISTRADORES WHERE EMAIL = ?`,
+    `SELECT ID_ADMINISTRADOR, EMAIL, NOMBRE, PASSWORD FROM ADMINISTRADORES WHERE EMAIL = ?`,
     [email]
   );
 
@@ -96,21 +45,14 @@ export async function checkUser(email, password) {
     const passwordCompare = await bcrypt.compare(password, datosAdmin.PASSWORD);
 
     if (passwordCompare) {
-      // Si la contraseña es correcta, verificar si la sesión está activa
-      if (datosAdmin.SESION_ACTIVA === 1) {
-        return { error: "Sesion Activa" }; // Sesión ya activa
-      } else {
-        // Si la sesión no está activa, la activamos
-        await marcarSesionActiva(datosAdmin.ID_ADMINISTRADOR); // Llamada a la función para activar la sesión
-        return {
-          idAdmin: datosAdmin.ID_ADMINISTRADOR,
-          email: datosAdmin.EMAIL,
-          nombre: datosAdmin.NOMBRE,
-          sesionActiva: 1, // Ahora la sesión está activa
-        };
-      }
+      return {
+        idAdmin: datosAdmin.ID_ADMINISTRADOR,
+        email: datosAdmin.EMAIL,
+        nombre: datosAdmin.NOMBRE,
+        sesionActiva: datosAdmin.SESION_ACTIVA, // Agregar estado de sesión activa
+      };
     } else {
       return null; // Contraseña incorrecta
     }
   }
-}
+};

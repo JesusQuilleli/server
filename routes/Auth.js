@@ -4,7 +4,6 @@ import {
   registerAdmin,
   checkUser,
   findAdminByEmail,
-  marcarSesionInactiva
 } from "../controllers/FunctionsAuth.js";
 
 const routerAuth = express.Router();
@@ -36,68 +35,34 @@ routerAuth.post("/registerAdmin", async (req, res) => {
 });
 
 // PETICIÓN PARA VERIFICAR SI LOS DATOS INGRESADOS SON CORRECTOS Y AUTENTICAR INICIO DE SESIÓN --VERIFICADO
-routerAuth.post("/autenticacionInicio", async (req, res) => {
+app.post("/autenticacionInicio", async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Verificar si el correo ya está registrado
+    // Buscar el usuario por correo
     const user = await findAdminByEmail(email);
 
     if (!user) {
-      return res
-        .status(404)
-        .send({ success: false, message: "Correo no registrado." });
+      return res.status(404).json({
+        success: false,
+        message: "Correo no registrado.",
+        resultado: null,
+      });
     }
 
-    const admin = await checkUser(email, password); // Llamar a checkUser que ya activa la sesión si es necesario
+    const resultado = await checkUser(email, password);
 
-    if (!admin) {
-      return res
-        .status(404)
-        .send({ success: false, message: "Correo o contraseña incorrectos." });
+    if(resultado){
+      res.status(200).send({message:"Usuario validado correctamente", resultado})
     }
-
-    if (admin.error == 'Sesion Activa') {
-      return res
-        .status(404)
-        .send({ success: false, message: "Sesion Activa." });
-    }
-
-    // Si la sesión no está activa y la autenticación es exitosa, retornamos el estado de la sesión
-    res.status(200).send({
-      success: true,
-      message: "Sesión activada exitosamente.",
-      user: {
-        idAdmin: admin.idAdmin,
-        email: admin.email,
-        nombre: admin.nombre,
-        sesionActiva: admin.sesionActiva,
-      },
-    });
+   
   } catch (error) {
-    console.error("Error durante la autenticación:", error);
-    res.status(500).send({
+    console.error("Error al buscar al usuario:", error);
+    res.status(500).json({
       success: false,
       message: "Ha ocurrido un error al procesar la solicitud.",
+      resultado: null,
     });
-  }
-});
-
-//CERRAR SESION
-routerAuth.post("/cerrarSesion", async (req, res) => {
-  const { idAdmin } = req.body;
-
-  try {
-    const respuesta = await marcarSesionInactiva(idAdmin);
-
-    if (respuesta.success) {
-      res.status(200).send({ message: "Sesión cerrada con éxito." });
-    } else {
-      res.status(404).send({ message: respuesta.message });
-    }
-  } catch (error) {
-    console.error("Error al cerrar sesión:", error.message);
-    res.status(500).send({ message: "Error interno al cerrar sesión." });
   }
 });
 
