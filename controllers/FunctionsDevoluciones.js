@@ -115,24 +115,34 @@ import { pool } from "../helpers/index.js";
  export async function verDevolucionesCliente(ADMIN_ID, NOMBRE) {
   try {
     const [result] = await pool.query(
-      `SELECT 
-        ID_DEVOLUCION,
-        CLIENTE,
-        FECHA_DEVOLUCION
+      `
+      SELECT 
+        D.ID_DEVOLUCION,
+        D.CLIENTE,
+        D.VENTA_ID,
+        P.NOMBRE AS NOMBRE_PRODUCTO,
+        D.CANTIDAD,
+        D.FECHA_DEVOLUCION,
+        D.MOTIVO
       FROM 
-        DEVOLUCIONES 
-      WHERE ADMINISTRADOR_ID = ? AND CLIENTE LIKE ?`,
+        DEVOLUCIONES D
+      JOIN 
+        PRODUCTOS P 
+      ON 
+        D.PRODUCTO_ID = P.ID_PRODUCTO
+      WHERE 
+        D.ADMINISTRADOR_ID = ? AND D.CLIENTE LIKE ?
+      `,
       [ADMIN_ID, `%${NOMBRE}%`] // Uso de % para búsqueda parcial con LIKE
     );
 
-    if(result.length > 0){
-      return result;
+    if (result.length > 0) {
+      return result; // Retornar los resultados encontrados
     } else {
-      return [];
+      return []; // Si no hay resultados, retornar un array vacío
     }
-
   } catch (error) {
     console.error("Error al cargar Devoluciones por Cliente", error);
-    throw error; // Propaga el error para manejarlo externamente si es necesario
+    throw error; // Propaga el error para manejo externo
   }
-};
+}
