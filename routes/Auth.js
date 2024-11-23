@@ -12,7 +12,11 @@ import {
 } from "../controllers/FunctionsAuth.js";
 
 const routerAuth = express.Router();
+
 dotenv.config();
+
+const jwtSecret = process.env.JWT_SECRET;
+
 
 //PETICION POST REGISTRAR ADMINISTRADOR -- END POINT --VERIFICADO
 routerAuth.post("/registerAdmin", async (req, res) => {
@@ -68,7 +72,7 @@ routerAuth.post("/autenticacionInicio", async (req, res) => {
       // Generar el token JWT
       const token = jwt.sign(
         { AdminId: resultado.idAdmin },
-        process.env.JWT_SECRET,
+        jwtSecret,
         { expiresIn: "1d" }
       );
 
@@ -110,7 +114,7 @@ routerAuth.post("/cerrarSesion", async (req, res) => {
     }
 
     // Verificar el token con JWT
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, jwtSecret);
 
     // Verificar que el adminId coincida con el AdminId del token
     if (decoded.AdminId !== adminId) {
