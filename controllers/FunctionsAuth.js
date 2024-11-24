@@ -57,15 +57,45 @@ export async function checkUser(email, password) {
 };
 
 //TOKENS AUTH
-export async function sessionTokens(admin_ID, Token) {
-  const response = await pool.query('REPLACE INTO SESSION (ADMINISTRADOR_ID, TOKEN) VALUES (?, ?)', [admin_ID,Token])
+export async function sessionTokens(admin_ID, token) {
+  try {
+    // Verificar si ya existe un token activo para este administrador
+    const [existingSession] = await pool.query(
+      "SELECT * FROM SESSION WHERE ADMINISTRADOR_ID = ? AND TOKEN IS NOT NULL",
+      [admin_ID]
+    );
 
-  if(response){
-    return response
-  } else {
-    return null
+    if (existingSession && existingSession.length > 0) {
+      // Si ya hay un token activo, no se permite iniciar una nueva sesión
+      return {
+        success: false,
+        message: "Ya existe una sesión activa para este administrador.",
+      };
+    }
+
+    // Si no hay una sesión activa, insertar o reemplazar el token
+    const response = await pool.query(
+      "REPLACE INTO SESSION (ADMINISTRADOR_ID, TOKEN) VALUES (?, ?)",
+      [admin_ID, token]
+    );
+
+    if (response) {
+      return {
+        success: true,
+        message: "Sesión iniciada exitosamente.",
+        token,
+      };
+    } else {
+      return {
+        success: false,
+        message: "Error al iniciar sesión.",
+      };
+    }
+  } catch (error) {
+    console.error("Error al manejar la sesión:", error);
+    throw new Error("Error al manejar la sesión.");
   }
-};
+}
 
 export async function deleteToken(admin_ID, Auth) {
   const [result] = await pool.query(
@@ -81,23 +111,3 @@ export async function deleteToken(admin_ID, Auth) {
 
 };
 
-export async function checkActiveSession(adminId) {
-  try {
-    // Consultar en la base de datos si hay un token activo para este adminId
-    const [result] = await pool.query(
-      "SELECT * FROM SESSION WHERE ADMINISTRADOR_ID = ? AND TOKEN IS NOT NULL", 
-      [adminId]
-    );
-
-    if (result && result.length > 0) {
-      // Si se encuentra una sesión con un token activo
-      return true;
-    }
-
-    // Si no se encuentra un token activo
-    return false;
-  } catch (error) {
-    console.error("Error al verificar sesión activa:", error);
-    throw new Error("Error al verificar sesión activa.");
-  }
-};

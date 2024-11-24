@@ -19,30 +19,91 @@ const jwtSecret = 'devjesus';
 
 
 //PETICION POST REGISTRAR ADMINISTRADOR -- END POINT --VERIFICADO
-routerAuth.post("/registerAdmin", async (req, res) => {
-  const { name, password, email } = req.body;
+// routerAuth.post("/registerAdmin", async (req, res) => {
+//   const { name, password, email } = req.body;
 
-  try {
-    // Verificar si el correo ya está registrado
-    const existingAdmin = await findAdminByEmail(email);
-    if (existingAdmin) {
-      return res.status(409).send({ message: "El correo ya está registrado" });
-    }
-    // Registrar nuevo administrador si el correo no existe
-    const result = await registerAdmin(name, password, email);
-    if (result) {
-      res.status(200).send({
-        message: "Administrador registrado con éxito",
-        id: result.insertId,
-      });
-    } else {
-      res.status(401).send({ message: "Datos Incorrectos", result: null });
-    }
-  } catch (error) {
-    console.error("Error al registrar administrador:", error);
-    res.status(500).send("Error al registrar administrador");
-  }
-});
+//   try {
+//     // Verificar si el correo ya está registrado
+//     const existingAdmin = await findAdminByEmail(email);
+//     if (existingAdmin) {
+//       return res.status(409).send({ message: "El correo ya está registrado" });
+//     }
+//     // Registrar nuevo administrador si el correo no existe
+//     const result = await registerAdmin(name, password, email);
+//     if (result) {
+//       res.status(200).send({
+//         message: "Administrador registrado con éxito",
+//         id: result.insertId,
+//       });
+//     } else {
+//       res.status(401).send({ message: "Datos Incorrectos", result: null });
+//     }
+//   } catch (error) {
+//     console.error("Error al registrar administrador:", error);
+//     res.status(500).send("Error al registrar administrador");
+//   }
+// });
+
+// routerAuth.post("/autenticacionInicio", async (req, res) => {
+//   const { email, password } = req.body;
+
+//   try {
+//     // Verificar si el correo ya está registrado
+//     const user = await findAdminByEmail(email);
+
+//     if (!user) {
+//       // Si el correo no está registrado, devolver mensaje indicando que debe registrarse
+//       return res
+//         .status(404)
+//         .send({ message: "Correo no registrado. Debes registrarte." });
+//     }
+
+//     // Verificar si ya hay una sesión activa
+//     const activeSession = await checkActiveSession(user.ID_ADMINISTRADOR);
+
+//     if (activeSession) {
+//       return res.status(400).send({ message: "Ya hay una sesión activa para este administrador." });
+//     }
+
+//     // Si el correo está registrado, proceder a la autenticación con la contraseña
+//     const resultado = await checkUser(email, password); 
+
+//     if (resultado) {
+//       // Generar el token JWT
+//       const token = jwt.sign(
+//         { AdminId: resultado.idAdmin },
+//         jwtSecret,
+//         { expiresIn: "1d" }
+//       );
+
+//       // Insertar el token en la tabla SESSION
+//       const sessionResponse = await sessionTokens(resultado.idAdmin, token);
+
+//       if (sessionResponse) {
+//         // Si la sesión se guardó correctamente, responder con éxito
+//         res.status(200).send({
+//           message: "Autenticado con éxito",
+//           token, // Devolver el token al cliente
+//           resultado,
+//         });
+//       } else {
+//         // Si ocurre algún error al guardar el token
+//         res.status(500).send({
+//           message: "Error al guardar la sesión",
+//         });
+//       }
+//     } else {
+//       // Si no fue exitoso, devolver un mensaje de error
+//       res.status(401).send({
+//         message: "Contraseña incorrecta",
+//         resultado: null,
+//       });
+//     }
+//   } catch (error) {
+//     console.log("Ha ocurrido un error al autenticar", error);
+//     res.status(500).send("Error al autenticar usuario");
+//   }
+// });
 
 routerAuth.post("/autenticacionInicio", async (req, res) => {
   const { email, password } = req.body;
@@ -58,13 +119,6 @@ routerAuth.post("/autenticacionInicio", async (req, res) => {
         .send({ message: "Correo no registrado. Debes registrarte." });
     }
 
-    // Verificar si ya hay una sesión activa
-    const activeSession = await checkActiveSession(user.ID_ADMINISTRADOR);
-
-    if (activeSession) {
-      return res.status(400).send({ message: "Ya hay una sesión activa para este administrador." });
-    }
-
     // Si el correo está registrado, proceder a la autenticación con la contraseña
     const resultado = await checkUser(email, password); 
 
@@ -76,10 +130,10 @@ routerAuth.post("/autenticacionInicio", async (req, res) => {
         { expiresIn: "1d" }
       );
 
-      // Insertar el token en la tabla SESSION
+      // Manejar sesión: verificar y crear token
       const sessionResponse = await sessionTokens(resultado.idAdmin, token);
 
-      if (sessionResponse) {
+      if (sessionResponse.success) {
         // Si la sesión se guardó correctamente, responder con éxito
         res.status(200).send({
           message: "Autenticado con éxito",
@@ -87,9 +141,9 @@ routerAuth.post("/autenticacionInicio", async (req, res) => {
           resultado,
         });
       } else {
-        // Si ocurre algún error al guardar el token
-        res.status(500).send({
-          message: "Error al guardar la sesión",
+        // Si ya existe una sesión activa, o ocurrió un error al guardar el token
+        res.status(400).send({
+          message: sessionResponse.message,
         });
       }
     } else {
