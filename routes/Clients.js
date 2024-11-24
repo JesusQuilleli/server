@@ -5,7 +5,8 @@ import {
   insertClients,
   editClient,
   deleteClient,
-  busquedaCliente
+  busquedaCliente,
+  verificarCliente
 } from "./../controllers/FunctionsClients.js";
 
 const routesClients = express.Router();
@@ -24,7 +25,27 @@ routesClients.get("/cargarClientes/:adminId", async (req, res) => {
 //INSERTAR CLIENTE --VERIFICADO
 routesClients.post("/insertarCliente", async (req, res) => {
   try {
-    const { cedulaCliente, nombre, telefono, correo, direccion, fecha, adminId } = req.body;
+    const {
+      cedulaCliente,
+      nombre,
+      telefono,
+      correo,
+      direccion,
+      fecha,
+      adminId,
+    } = req.body;
+
+    // Verificar si el cliente ya está registrado
+    const clienteExistente = await verificarCliente(adminId, cedulaCliente);
+
+    if (clienteExistente) {
+      res.status(409).send({
+        message: "El Cliente ya está registrado.",
+        cliente: clienteExistente, // Opcional: envía información del cliente ya existente
+      });
+      return;
+    };
+    
     const resultado = await insertClients(
       cedulaCliente,
       nombre,

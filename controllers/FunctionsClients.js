@@ -76,3 +76,12 @@ export async function busquedaCliente(valor) {
   );
   return row;
 }
+
+//VERIFICAR SI EL CLIENTE EXISTE
+export async function verificarCliente(ADMIN_ID, CEDULA) {
+  const [results] = await pool.query(
+    "SELECT * FROM CLIENTES WHERE ADMINISTRADOR_ID = ? AND CEDULA = ?",
+    [ADMIN_ID, CEDULA]
+  );
+  return results.length > 0 ? results[0] : null; // Retorna el cliente si existe o null
+};
