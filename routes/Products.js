@@ -3,6 +3,8 @@ import fs from "fs";
 import sharp from "sharp";
 import path from "path";
 
+import { v4 as uuidv4 } from "uuid";
+
 import {
   loadCategory,
   insertProducts,
@@ -118,8 +120,8 @@ routerProducts.post("/registerProduct", async (req, res) => {
     if (imagen) {
       // Genera un nombre único para la imagen WebP
       const extension = path.extname(imagen.name); // Extrae la extensión original
-      const baseName = path.basename(imagen.name, extension); // Nombre sin extensión
-      nombreUnico = `${Date.now()}-${baseName}.webp`;
+      const uniqueId = uuidv4();
+      nombreUnico = `${uniqueId}${extension}`;
 
       // Ruta para guardar la imagen convertida
       const rutaDestino = `./uploads/${nombreUnico}`;
