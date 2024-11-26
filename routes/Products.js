@@ -121,7 +121,7 @@ routerProducts.post("/registerProduct", async (req, res) => {
       // Genera un nombre único para la imagen WebP
       const extension = path.extname(imagen.name); // Extrae la extensión original
       const uniqueId = uuidv4();
-      nombreUnico = `${uniqueId}${extension}`;
+      nombreUnico = `${uniqueId}.webp`;
 
       // Ruta para guardar la imagen convertida
       const rutaDestino = `./uploads/${nombreUnico}`;
@@ -174,9 +174,8 @@ routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
     // Verifica si se ha enviado una nueva imagen
     if (imagen) {
       // Genera un nombre único para la nueva imagen
-      const extension = path.extname(imagen.name); // Extrae la extensión
-      const baseName = path.basename(imagen.name, extension); // Nombre sin extensión
-      nombreUnico = `${Date.now()}-${baseName}.webp`;
+      const uniqueId = uuidv4();
+      nombreUnico = `${uniqueId}.webp`; // Fijamos siempre la extensión .webp
 
       const rutaDestino = `./uploads/${nombreUnico}`;
 
