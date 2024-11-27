@@ -173,7 +173,11 @@ routerProducts.post("/registerProduct", async (req, res) => {
 
   const { categoria, nombre, descripcion, precioCompra, precio, cantidad, adminId } = req.body;
 
+  console.log(req.body)
+
   const imagen = req.files?.imagen;
+
+  console.log(imagen)
 
   try {
     let imagenURL = null;
@@ -200,7 +204,7 @@ routerProducts.post("/registerProduct", async (req, res) => {
       // Sube el archivo a S3
       const data = await s3.upload(params).promise();
 
-      console.log("Retorno de direccion de la imagen: " + data)
+      console.log("Retorno de direccion de la imagen: ", data)
 
       imagenURL = data.Location; // URL pública de la imagen subida
     }
