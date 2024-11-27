@@ -314,7 +314,7 @@ routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
   const imagen = req.files?.imagen;
   const productId = req.params.id_producto;
 
-  console.log(imagen)
+  console.log("IMAGEN QUE LLEGA AL BACKEND", imagen)
 
   try {
     let nombreUnico = null;
@@ -326,7 +326,7 @@ routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
       return res.status(404).send({ message: "Producto no encontrado." });
     }
 
-    console.log(productoActual.IMAGEN)
+    console.log("IMAGEN DEL PRODUCTO SELECCIONADO", productoActual.IMAGEN)
 
     // Verifica si se ha enviado una nueva imagen
     if (imagen) {
@@ -349,7 +349,9 @@ routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
       };
 
       // Subir la nueva imagen a S3
-      await s3.upload(params).promise();
+      const data = await s3.upload(params).promise();
+
+      const ImagenURL = data.Location;
 
       // Elimina la imagen antigua de S3 si existe
       if (productoActual.IMAGEN) {
