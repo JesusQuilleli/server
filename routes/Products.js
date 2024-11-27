@@ -423,20 +423,13 @@ routerProducts.delete("/deleteProduct/:id_producto", async (req, res) => {
   const productID = req.params.id_producto;
 
   try {
-    // Obtener el producto antes de eliminarlo, para acceder a su imagen
-    const productoActual = await obtenerProductoPorId(productID);
-
-    if (!productoActual) {
-      return res.status(404).send({ message: "Producto no encontrado." });
-    }
-
-    // Eliminar el producto de la base de datos
+    // Eliminar el producto de la base de datos y obtener información adicional
     const response = await eliminarProducto(productID);
 
     if (response.affectedRows > 0) {
       // Eliminar la imagen de S3 si existe
-      if (productoActual.IMAGEN) {
-        const oldImageKey = productoActual.IMAGEN.split("/").pop(); // Extraer solo el nombre del archivo de la URL completa
+      if (response.imagen) {
+        const oldImageKey = response.imagen.split("/").pop(); // Extraer solo el nombre del archivo de la URL completa
         const deleteParams = {
           Bucket: BUCKET_NAME,
           Key: oldImageKey,
