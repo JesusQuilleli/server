@@ -1,7 +1,14 @@
 import express from "express";
-import fs from "fs";
+//import fs from "fs";
 import sharp from "sharp";
-import path from "path";
+import AWS from 'aws-sdk';
+
+// Configuración de AWS
+AWS.config.update({
+  accessKeyId: '',
+  secretAccessKey: '',
+  region: 'us-east-2', // Cambia la región según corresponda
+});
 
 import { v4 as uuidv4 } from "uuid";
 
@@ -18,6 +25,8 @@ import {
   busquedaProductosPorVenta,
   obtenerProductoPorId,
 } from "./../controllers/FunctionsProductos.js";
+
+const s3 = new AWS.S3();
 
 var routerProducts = express.Router();
 
@@ -100,35 +109,90 @@ routerProducts.get("/buscarProductos/:adminId", async (req, res) => {
   }
 });
 
-//REGISTRAR PRODUCTOS --VERIFICADO
-routerProducts.post("/registerProduct", async (req, res) => {
-  const {
-    categoria,
-    nombre,
-    descripcion,
-    precioCompra,
-    precio,
-    cantidad,
-    adminId,
-  } = req.body;
+//REGISTRAR PRODUCTOS --VERIFICADO -- FUNCIONAL SIN S3
+// routerProducts.post("/registerProduct", async (req, res) => {
+//   const {
+//     categoria,
+//     nombre,
+//     descripcion,
+//     precioCompra,
+//     precio,
+//     cantidad,
+//     adminId,
+//   } = req.body;
 
+//   const imagen = req.files?.imagen;
+
+//   try {
+//     let nombreUnico = null;
+
+//     if (imagen) {
+//       // Genera un nombre único para la imagen WebP
+//       const uniqueId = uuidv4();
+//       nombreUnico = `${uniqueId}.webp`;
+
+//       // Ruta para guardar la imagen convertida
+//       const rutaDestino = `./uploads/${nombreUnico}`;
+
+//       // Convierte la imagen a WebP usando Sharp
+//       await sharp(imagen.data) // `imagen.data` contiene el buffer de la imagen
+//         .webp({ quality: 100 }) // Ajusta la calidad según sea necesario
+//         .toFile(rutaDestino);
+//     }
+
+//     const resultado = await insertProducts(
+//       categoria,
+//       nombre,
+//       descripcion,
+//       precioCompra,
+//       precio,
+//       cantidad,
+//       nombreUnico,
+//       adminId
+//     );
+
+//     res
+//       .status(200)
+//       .send({ message: "Producto Registrado Correctamente", resultado });
+//   } catch (error) {
+//     console.log("Error al Registrar Producto", error);
+//     res
+//       .status(500)
+//       .send({ message: "Error al registrar producto.", error: error.message });
+//   }
+// });
+
+//CON S3
+
+routerProducts.post("/registerProduct", async (req, res) => {
+  const { categoria, nombre, descripcion, precioCompra, precio, cantidad, adminId } = req.body;
   const imagen = req.files?.imagen;
 
   try {
-    let nombreUnico = null;
+    let imagenURL = null;
 
     if (imagen) {
-      // Genera un nombre único para la imagen WebP
+      // Genera un nombre único para la imagen
       const uniqueId = uuidv4();
-      nombreUnico = `${uniqueId}.webp`;
+      const nombreUnico = `${uniqueId}.webp`;
 
-      // Ruta para guardar la imagen convertida
-      const rutaDestino = `./uploads/${nombreUnico}`;
+      // Convierte la imagen a formato WebP usando Sharp
+      const bufferImagen = await sharp(imagen.data)
+        .webp({ quality: 80 }) // Puedes ajustar la calidad
+        .toBuffer(); // Convierte la imagen a un buffer
 
-      // Convierte la imagen a WebP usando Sharp
-      await sharp(imagen.data) // `imagen.data` contiene el buffer de la imagen
-        .webp({ quality: 100 }) // Ajusta la calidad según sea necesario
-        .toFile(rutaDestino);
+      // Sube la imagen a S3
+      const params = {
+        Bucket: '', // Tu nombre de bucket en S3
+        Key: nombreUnico, // El nombre del archivo que se guardará
+        Body: bufferImagen, // El archivo de imagen como buffer
+        ContentType: 'image/webp', // Tipo de contenido
+        ACL: 'public-read', // El archivo será público
+      };
+
+      // Sube el archivo a S3
+      const data = await s3.upload(params).promise();
+      imagenURL = data.Location; // URL pública de la imagen subida
     }
 
     const resultado = await insertProducts(
@@ -138,22 +202,98 @@ routerProducts.post("/registerProduct", async (req, res) => {
       precioCompra,
       precio,
       cantidad,
-      nombreUnico,
+      imagenURL,
       adminId
     );
 
-    res
-      .status(200)
-      .send({ message: "Producto Registrado Correctamente", resultado });
+    res.status(200).send({ message: "Producto Registrado Correctamente", resultado });
   } catch (error) {
-    console.log("Error al Registrar Producto", error);
-    res
-      .status(500)
-      .send({ message: "Error al registrar producto.", error: error.message });
+    console.error("Error al Registrar Producto", error);
+    res.status(500).send({ message: "Error al registrar producto.", error: error.message });
   }
 });
 
-//MODIFICAR PRODUCTO --VERIFICADO
+//MODIFICAR PRODUCTO --VERIFICADO --FUNCIONAL SIN S3
+// routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
+//   const { categoria, nombre, descripcion, precioCompra, precio, cantidad } =
+//     req.body;
+//   const imagen = req.files?.imagen;
+//   const productId = req.params.id_producto;
+
+//   try {
+//     let nombreUnico = null;
+
+//     // Obtener el producto actual de la base de datos (incluyendo su imagen)
+//     const productoActual = await obtenerProductoPorId(productId); // Función que obtiene el producto actual por su ID
+
+//     if (!productoActual) {
+//       return res.status(404).send({ message: "Producto no encontrado." });
+//     }
+
+//     // Verifica si se ha enviado una nueva imagen
+//     if (imagen) {
+//       // Genera un nombre único para la nueva imagen
+//       const uniqueId = uuidv4();
+//       nombreUnico = `${uniqueId}.webp`; // Fijamos siempre la extensión .webp
+
+//       const rutaDestino = `./uploads/${nombreUnico}`;
+
+//       // Convierte la nueva imagen a WebP y guárdala
+//       await sharp(imagen.data)
+//         .webp({ quality: 80 }) // Ajusta la calidad según sea necesario
+//         .toFile(rutaDestino);
+
+//       // Elimina la imagen antigua si existe
+//       if (productoActual.IMAGEN) {
+//         const rutaAntigua = `./uploads/${productoActual.IMAGEN}`;
+//         if (fs.existsSync(rutaAntigua)) {
+//           fs.unlinkSync(rutaAntigua); // Borra la imagen antigua
+//         }
+//       }
+//     } else {
+//       // Si no se envía una nueva imagen, conserva la actual
+//       if (productoActual.IMAGEN) {
+//         nombreUnico = productoActual.IMAGEN; // Usa la imagen actual
+//       } else {
+//         nombreUnico = null; // O un valor predeterminado según tu lógica
+//       }
+//     }
+
+//     // Actualiza el producto en la base de datos
+//     const resultado = await modificProduct(
+//       categoria,
+//       nombre,
+//       descripcion,
+//       parseFloat(precioCompra),
+//       parseFloat(precio),
+//       parseInt(cantidad),
+//       nombreUnico,
+//       productId
+//     );
+
+//     res
+//       .status(200)
+//       .send({ message: "Producto Modificado Correctamente", resultado });
+//   } catch (error) {
+//     // Manejo de errores de red
+//     if (
+//       error.code === "ECONNREFUSED" ||
+//       error.message.includes("Network Error")
+//     ) {
+//       console.error("Fallo en la conexión:", error);
+//       return res
+//         .status(500)
+//         .send({ message: "Fallo en la conexión, intente nuevamente." });
+//     }
+
+//     console.error("Error al Modificar Producto:", error);
+//     res
+//       .status(500)
+//       .send({ message: "Error al modificar producto.", error: error.message });
+//   }
+// });
+
+//CON S3
 routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
   const { categoria, nombre, descripcion, precioCompra, precio, cantidad } =
     req.body;
@@ -164,7 +304,7 @@ routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
     let nombreUnico = null;
 
     // Obtener el producto actual de la base de datos (incluyendo su imagen)
-    const productoActual = await obtenerProductoPorId(productId); // Función que obtiene el producto actual por su ID
+    const productoActual = await obtenerProductoPorId(productId);
 
     if (!productoActual) {
       return res.status(404).send({ message: "Producto no encontrado." });
@@ -174,28 +314,39 @@ routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
     if (imagen) {
       // Genera un nombre único para la nueva imagen
       const uniqueId = uuidv4();
-      nombreUnico = `${uniqueId}.webp`; // Fijamos siempre la extensión .webp
+      nombreUnico = `${uniqueId}.webp`;
 
-      const rutaDestino = `./uploads/${nombreUnico}`;
+      // Convierte la nueva imagen a WebP y obtén el buffer
+      const bufferImagen = await sharp(imagen.data)
+        .webp({ quality: 80 })
+        .toBuffer();
 
-      // Convierte la nueva imagen a WebP y guárdala
-      await sharp(imagen.data)
-        .webp({ quality: 80 }) // Ajusta la calidad según sea necesario
-        .toFile(rutaDestino);
+      // Subir la nueva imagen a S3
+      const params = {
+        Bucket: '',
+        Key: nombreUnico,
+        Body: bufferImagen,
+        ContentType: 'image/webp',
+        ACL: 'public-read', // Establecer la imagen como pública
+      };
 
-      // Elimina la imagen antigua si existe
+      // Subir la nueva imagen a S3
+      await s3.upload(params).promise();
+
+      // Elimina la imagen antigua de S3 si existe
       if (productoActual.IMAGEN) {
-        const rutaAntigua = `./uploads/${productoActual.IMAGEN}`;
-        if (fs.existsSync(rutaAntigua)) {
-          fs.unlinkSync(rutaAntigua); // Borra la imagen antigua
-        }
+        const deleteParams = {
+          Bucket: 'myimagesbucket-shopmg',
+          Key: productoActual.IMAGEN, // El nombre de la imagen antigua
+        };
+        await s3.deleteObject(deleteParams).promise(); // Elimina la imagen de S3
       }
     } else {
       // Si no se envía una nueva imagen, conserva la actual
       if (productoActual.IMAGEN) {
-        nombreUnico = productoActual.IMAGEN; // Usa la imagen actual
+        nombreUnico = productoActual.IMAGEN;
       } else {
-        nombreUnico = null; // O un valor predeterminado según tu lógica
+        nombreUnico = null;
       }
     }
 
@@ -215,17 +366,6 @@ routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
       .status(200)
       .send({ message: "Producto Modificado Correctamente", resultado });
   } catch (error) {
-    // Manejo de errores de red
-    if (
-      error.code === "ECONNREFUSED" ||
-      error.message.includes("Network Error")
-    ) {
-      console.error("Fallo en la conexión:", error);
-      return res
-        .status(500)
-        .send({ message: "Fallo en la conexión, intente nuevamente." });
-    }
-
     console.error("Error al Modificar Producto:", error);
     res
       .status(500)
@@ -233,7 +373,34 @@ routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
   }
 });
 
-// ELIMINAR PRODUCTO
+// ELIMINAR PRODUCTO --FUNCIONAL SIN S3
+// routerProducts.delete("/deleteProduct/:id_producto", async (req, res) => {
+//   const productID = req.params.id_producto;
+
+//   try {
+//     const response = await eliminarProducto(productID);
+
+//     if (response.affectedRows > 0) {
+//       // Eliminar la imagen si existe
+//       if (response.imagen) {
+//         fs.unlinkSync(`./uploads/${response.imagen}`);
+//       }
+
+//       res
+//         .status(200)
+//         .send({ message: "Producto Eliminado con Éxito", id: productID });
+//     } else {
+//       res.status(404).send({ message: "No se pudo eliminar el producto" });
+//     }
+//   } catch (error) {
+//     console.log("Error al Eliminar Producto", error);
+//     res
+//       .status(500)
+//       .send({ message: "Error al eliminar el producto", error: error.message });
+//   }
+// });
+
+//CON S3
 routerProducts.delete("/deleteProduct/:id_producto", async (req, res) => {
   const productID = req.params.id_producto;
 
@@ -241,9 +408,13 @@ routerProducts.delete("/deleteProduct/:id_producto", async (req, res) => {
     const response = await eliminarProducto(productID);
 
     if (response.affectedRows > 0) {
-      // Eliminar la imagen si existe
+      // Eliminar la imagen de S3 si existe
       if (response.imagen) {
-        fs.unlinkSync(`./uploads/${response.imagen}`);
+        const deleteParams = {
+          Bucket: '',
+          Key: response.imagen, // Nombre de la imagen asociada
+        };
+        await s3.deleteObject(deleteParams).promise(); // Elimina la imagen de S3
       }
 
       res
