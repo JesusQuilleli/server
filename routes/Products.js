@@ -314,6 +314,8 @@ routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
   const imagen = req.files?.imagen;
   const productId = req.params.id_producto;
 
+  console.log(imagen)
+
   try {
     let nombreUnico = null;
 
@@ -323,6 +325,8 @@ routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
     if (!productoActual) {
       return res.status(404).send({ message: "Producto no encontrado." });
     }
+
+    console.log(productoActual.IMAGEN)
 
     // Verifica si se ha enviado una nueva imagen
     if (imagen) {
