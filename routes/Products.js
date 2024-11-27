@@ -350,7 +350,7 @@ routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
       // Elimina la imagen antigua de S3 si existe
       if (productoActual.IMAGEN) {
         const deleteParams = {
-          Bucket: 'myimagesbucket-shopmg',
+          Bucket: BUCKET_NAME,
           Key: productoActual.IMAGEN, // El nombre de la imagen antigua
         };
         await s3.deleteObject(deleteParams).promise(); // Elimina la imagen de S3
