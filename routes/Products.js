@@ -2,13 +2,7 @@ import express from "express";
 //import fs from "fs";
 import sharp from "sharp";
 import AWS from 'aws-sdk';
-
-// Configuración de AWS
-AWS.config.update({
-  accessKeyId: '',
-  secretAccessKey: '',
-  region: 'us-east-2', // Cambia la región según corresponda
-});
+import dotenv from "dotenv";
 
 import { v4 as uuidv4 } from "uuid";
 
@@ -26,7 +20,18 @@ import {
   obtenerProductoPorId,
 } from "./../controllers/FunctionsProductos.js";
 
+dotenv.config();
+
+// Configuración de AWS
+AWS.config.update({
+  accessKeyId: process.env.KEY_ACCESO,
+  secretAccessKey: process.env.KEY_SECRET,
+  region: 'us-east-2', // Cambia la región según corresponda
+});
+
 const s3 = new AWS.S3();
+
+const BUCKET_NAME = process.env.BUCKET_NAME;
 
 var routerProducts = express.Router();
 
@@ -183,7 +188,7 @@ routerProducts.post("/registerProduct", async (req, res) => {
 
       // Sube la imagen a S3
       const params = {
-        Bucket: '', // Tu nombre de bucket en S3
+        Bucket: BUCKET_NAME, // Tu nombre de bucket en S3
         Key: nombreUnico, // El nombre del archivo que se guardará
         Body: bufferImagen, // El archivo de imagen como buffer
         ContentType: 'image/webp', // Tipo de contenido
@@ -323,7 +328,7 @@ routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
 
       // Subir la nueva imagen a S3
       const params = {
-        Bucket: '',
+        Bucket: BUCKET_NAME,
         Key: nombreUnico,
         Body: bufferImagen,
         ContentType: 'image/webp',
@@ -411,7 +416,7 @@ routerProducts.delete("/deleteProduct/:id_producto", async (req, res) => {
       // Eliminar la imagen de S3 si existe
       if (response.imagen) {
         const deleteParams = {
-          Bucket: '',
+          Bucket: BUCKET_NAME,
           Key: response.imagen, // Nombre de la imagen asociada
         };
         await s3.deleteObject(deleteParams).promise(); // Elimina la imagen de S3

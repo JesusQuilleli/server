@@ -14,7 +14,7 @@ const routerAuth = express.Router();
 
 dotenv.config();
 
-const jwtSecret = 'devjesus';
+const jwtSecret = process.env.JWT_SECRET;
 
 
 //PETICION POST REGISTRAR ADMINISTRADOR -- END POINT --VERIFICADO
