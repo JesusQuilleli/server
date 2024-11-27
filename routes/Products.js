@@ -309,15 +309,14 @@ routerProducts.post("/registerProduct", async (req, res) => {
 
 //CON S3
 routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
-  const { categoria, nombre, descripcion, precioCompra, precio, cantidad } =
-    req.body;
+  const { categoria, nombre, descripcion, precioCompra, precio, cantidad } = req.body;
   const imagen = req.files?.imagen;
   const productId = req.params.id_producto;
 
-  console.log("IMAGEN QUE LLEGA AL BACKEND", imagen)
+  console.log("IMAGEN QUE LLEGA AL BACKEND", imagen);
 
   try {
-    let nombreUnico = null;
+    let ImagenURL = null;
 
     // Obtener el producto actual de la base de datos (incluyendo su imagen)
     const productoActual = await obtenerProductoPorId(productId);
@@ -326,13 +325,13 @@ routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
       return res.status(404).send({ message: "Producto no encontrado." });
     }
 
-    console.log("IMAGEN DEL PRODUCTO SELECCIONADO", productoActual.IMAGEN)
+    console.log("IMAGEN DEL PRODUCTO SELECCIONADO", productoActual.IMAGEN);
 
     // Verifica si se ha enviado una nueva imagen
     if (imagen) {
       // Genera un nombre único para la nueva imagen
       const uniqueId = uuidv4();
-      nombreUnico = `${uniqueId}.webp`;
+      const nombreUnico = `${uniqueId}.webp`;
 
       // Convierte la nueva imagen a WebP y obtén el buffer
       const bufferImagen = await sharp(imagen.data)
@@ -344,30 +343,27 @@ routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
         Bucket: BUCKET_NAME,
         Key: nombreUnico,
         Body: bufferImagen,
-        ContentType: 'image/webp',
-        ACL: 'public-read', // Establecer la imagen como pública
+        ContentType: "image/webp",
+        ACL: "public-read", // Establecer la imagen como pública
       };
 
-      // Subir la nueva imagen a S3
       const data = await s3.upload(params).promise();
 
-      const ImagenURL = data.Location;
+      // Guardar la URL completa de la nueva imagen
+      ImagenURL = data.Location;
 
       // Elimina la imagen antigua de S3 si existe
       if (productoActual.IMAGEN) {
+        const oldImageKey = productoActual.IMAGEN.split("/").pop(); // Extraer solo el nombre del archivo de la URL
         const deleteParams = {
           Bucket: BUCKET_NAME,
-          Key: productoActual.IMAGEN, // El nombre de la imagen antigua
+          Key: oldImageKey,
         };
         await s3.deleteObject(deleteParams).promise(); // Elimina la imagen de S3
       }
     } else {
       // Si no se envía una nueva imagen, conserva la actual
-      if (productoActual.IMAGEN) {
-        nombreUnico = productoActual.IMAGEN;
-      } else {
-        nombreUnico = null;
-      }
+      ImagenURL = productoActual.IMAGEN || null;
     }
 
     // Actualiza el producto en la base de datos
@@ -378,18 +374,20 @@ routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
       parseFloat(precioCompra),
       parseFloat(precio),
       parseInt(cantidad),
-      nombreUnico,
+      ImagenURL, // Aquí debes guardar siempre la URL completa
       productId
     );
 
-    res
-      .status(200)
-      .send({ message: "Producto Modificado Correctamente", resultado });
+    res.status(200).send({
+      message: "Producto Modificado Correctamente",
+      resultado,
+    });
   } catch (error) {
     console.error("Error al Modificar Producto:", error);
-    res
-      .status(500)
-      .send({ message: "Error al modificar producto.", error: error.message });
+    res.status(500).send({
+      message: "Error al modificar producto.",
+      error: error.message,
+    });
   }
 });
 
