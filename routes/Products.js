@@ -119,7 +119,6 @@ routerProducts.post("/registerProduct", async (req, res) => {
 
     if (imagen) {
       // Genera un nombre único para la imagen WebP
-      const extension = path.extname(imagen.name); // Extrae la extensión original
       const uniqueId = uuidv4();
       nombreUnico = `${uniqueId}.webp`;
 

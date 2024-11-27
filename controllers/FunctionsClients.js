@@ -58,7 +58,7 @@ export async function editClient(NOMBRE, TELEFONO, EMAIL, DIRECCION, ID_CLIENTE)
 
 //ELIMINAR CLIENTE --VERIFICADO
 export async function deleteClient(ID_CLIENTE) {
-  const [row] = pool.query('DELETE FROM CLIENTES WHERE ID_CLIENTE = ?', [ID_CLIENTE])
+  const [row] = await pool.query('DELETE FROM CLIENTES WHERE ID_CLIENTE = ?', [ID_CLIENTE])
   if (row) {
     return row
   } else {
