@@ -18,7 +18,7 @@ const transporter = nodemailer.createTransport({
    },
  });
 
-//END - POINT RECUPERAR CONTRASEÑA --INSTALAR NODEMAILER EN EL BACKEND DEL SERVIDOR -NUBE
+//END - POINT RECUPERAR CONTRASEÑA --INSTALAR NODEMAILER EN EL BACKEND DEL SERVIDOR -NUBE --COMPARAR FECHAS
 cron.schedule('*/2 * * * *', async () => {
    try {
      // Eliminar los códigos expirados

@@ -1,7 +1,6 @@
 import express from "express";
-//import fs from "fs";
 import sharp from "sharp";
-import AWS from 'aws-sdk';
+import AWS from "aws-sdk";
 import dotenv from "dotenv";
 
 import { v4 as uuidv4 } from "uuid";
@@ -26,7 +25,7 @@ dotenv.config();
 AWS.config.update({
   accessKeyId: process.env.KEY_ACCESO,
   secretAccessKey: process.env.KEY_SECRET,
-  region: 'us-east-2', // Cambia la región según corresponda
+  region: "us-east-2", // Cambia la región según corresponda
 });
 
 const s3 = new AWS.S3();
@@ -114,70 +113,23 @@ routerProducts.get("/buscarProductos/:adminId", async (req, res) => {
   }
 });
 
-//REGISTRAR PRODUCTOS --VERIFICADO -- FUNCIONAL SIN S3
-// routerProducts.post("/registerProduct", async (req, res) => {
-//   const {
-//     categoria,
-//     nombre,
-//     descripcion,
-//     precioCompra,
-//     precio,
-//     cantidad,
-//     adminId,
-//   } = req.body;
-
-//   const imagen = req.files?.imagen;
-
-//   try {
-//     let nombreUnico = null;
-
-//     if (imagen) {
-//       // Genera un nombre único para la imagen WebP
-//       const uniqueId = uuidv4();
-//       nombreUnico = `${uniqueId}.webp`;
-
-//       // Ruta para guardar la imagen convertida
-//       const rutaDestino = `./uploads/${nombreUnico}`;
-
-//       // Convierte la imagen a WebP usando Sharp
-//       await sharp(imagen.data) // `imagen.data` contiene el buffer de la imagen
-//         .webp({ quality: 100 }) // Ajusta la calidad según sea necesario
-//         .toFile(rutaDestino);
-//     }
-
-//     const resultado = await insertProducts(
-//       categoria,
-//       nombre,
-//       descripcion,
-//       precioCompra,
-//       precio,
-//       cantidad,
-//       nombreUnico,
-//       adminId
-//     );
-
-//     res
-//       .status(200)
-//       .send({ message: "Producto Registrado Correctamente", resultado });
-//   } catch (error) {
-//     console.log("Error al Registrar Producto", error);
-//     res
-//       .status(500)
-//       .send({ message: "Error al registrar producto.", error: error.message });
-//   }
-// });
-
 //CON S3
-
 routerProducts.post("/registerProduct", async (req, res) => {
+  const {
+    categoria,
+    nombre,
+    descripcion,
+    precioCompra,
+    precio,
+    cantidad,
+    adminId,
+  } = req.body;
 
-  const { categoria, nombre, descripcion, precioCompra, precio, cantidad, adminId } = req.body;
-
-  console.log(req.body)
+  console.log(req.body);
 
   const imagen = req.files?.imagen;
 
-  console.log(imagen)
+  console.log(imagen);
 
   try {
     let imagenURL = null;
@@ -197,14 +149,14 @@ routerProducts.post("/registerProduct", async (req, res) => {
         Bucket: BUCKET_NAME, // Tu nombre de bucket en S3
         Key: nombreUnico, // El nombre del archivo que se guardará
         Body: bufferImagen, // El archivo de imagen como buffer
-        ContentType: 'image/webp', // Tipo de contenido
-        ACL: 'public-read', // El archivo será público
+        ContentType: "image/webp", // Tipo de contenido
+        ACL: "public-read", // El archivo será público
       };
 
       // Sube el archivo a S3
       const data = await s3.upload(params).promise();
 
-      console.log("Retorno de direccion de la imagen: ", data)
+      console.log("Retorno de direccion de la imagen: ", data);
 
       imagenURL = data.Location; // URL pública de la imagen subida
     }
@@ -220,96 +172,21 @@ routerProducts.post("/registerProduct", async (req, res) => {
       adminId
     );
 
-    res.status(200).send({ message: "Producto Registrado Correctamente", resultado });
+    res
+      .status(200)
+      .send({ message: "Producto Registrado Correctamente", resultado });
   } catch (error) {
     console.error("Error al Registrar Producto", error);
-    res.status(500).send({ message: "Error al registrar producto.", error: error.message });
+    res
+      .status(500)
+      .send({ message: "Error al registrar producto.", error: error.message });
   }
 });
 
-//MODIFICAR PRODUCTO --VERIFICADO --FUNCIONAL SIN S3
-// routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
-//   const { categoria, nombre, descripcion, precioCompra, precio, cantidad } =
-//     req.body;
-//   const imagen = req.files?.imagen;
-//   const productId = req.params.id_producto;
-
-//   try {
-//     let nombreUnico = null;
-
-//     // Obtener el producto actual de la base de datos (incluyendo su imagen)
-//     const productoActual = await obtenerProductoPorId(productId); // Función que obtiene el producto actual por su ID
-
-//     if (!productoActual) {
-//       return res.status(404).send({ message: "Producto no encontrado." });
-//     }
-
-//     // Verifica si se ha enviado una nueva imagen
-//     if (imagen) {
-//       // Genera un nombre único para la nueva imagen
-//       const uniqueId = uuidv4();
-//       nombreUnico = `${uniqueId}.webp`; // Fijamos siempre la extensión .webp
-
-//       const rutaDestino = `./uploads/${nombreUnico}`;
-
-//       // Convierte la nueva imagen a WebP y guárdala
-//       await sharp(imagen.data)
-//         .webp({ quality: 80 }) // Ajusta la calidad según sea necesario
-//         .toFile(rutaDestino);
-
-//       // Elimina la imagen antigua si existe
-//       if (productoActual.IMAGEN) {
-//         const rutaAntigua = `./uploads/${productoActual.IMAGEN}`;
-//         if (fs.existsSync(rutaAntigua)) {
-//           fs.unlinkSync(rutaAntigua); // Borra la imagen antigua
-//         }
-//       }
-//     } else {
-//       // Si no se envía una nueva imagen, conserva la actual
-//       if (productoActual.IMAGEN) {
-//         nombreUnico = productoActual.IMAGEN; // Usa la imagen actual
-//       } else {
-//         nombreUnico = null; // O un valor predeterminado según tu lógica
-//       }
-//     }
-
-//     // Actualiza el producto en la base de datos
-//     const resultado = await modificProduct(
-//       categoria,
-//       nombre,
-//       descripcion,
-//       parseFloat(precioCompra),
-//       parseFloat(precio),
-//       parseInt(cantidad),
-//       nombreUnico,
-//       productId
-//     );
-
-//     res
-//       .status(200)
-//       .send({ message: "Producto Modificado Correctamente", resultado });
-//   } catch (error) {
-//     // Manejo de errores de red
-//     if (
-//       error.code === "ECONNREFUSED" ||
-//       error.message.includes("Network Error")
-//     ) {
-//       console.error("Fallo en la conexión:", error);
-//       return res
-//         .status(500)
-//         .send({ message: "Fallo en la conexión, intente nuevamente." });
-//     }
-
-//     console.error("Error al Modificar Producto:", error);
-//     res
-//       .status(500)
-//       .send({ message: "Error al modificar producto.", error: error.message });
-//   }
-// });
-
 //CON S3
 routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
-  const { categoria, nombre, descripcion, precioCompra, precio, cantidad } = req.body;
+  const { categoria, nombre, descripcion, precioCompra, precio, cantidad } =
+    req.body;
   const imagen = req.files?.imagen;
   const productId = req.params.id_producto;
 
@@ -390,33 +267,6 @@ routerProducts.put("/updateProduct/:id_producto", async (req, res) => {
     });
   }
 });
-
-// ELIMINAR PRODUCTO --FUNCIONAL SIN S3
-// routerProducts.delete("/deleteProduct/:id_producto", async (req, res) => {
-//   const productID = req.params.id_producto;
-
-//   try {
-//     const response = await eliminarProducto(productID);
-
-//     if (response.affectedRows > 0) {
-//       // Eliminar la imagen si existe
-//       if (response.imagen) {
-//         fs.unlinkSync(`./uploads/${response.imagen}`);
-//       }
-
-//       res
-//         .status(200)
-//         .send({ message: "Producto Eliminado con Éxito", id: productID });
-//     } else {
-//       res.status(404).send({ message: "No se pudo eliminar el producto" });
-//     }
-//   } catch (error) {
-//     console.log("Error al Eliminar Producto", error);
-//     res
-//       .status(500)
-//       .send({ message: "Error al eliminar el producto", error: error.message });
-//   }
-// });
 
 //CON S3
 routerProducts.delete("/deleteProduct/:id_producto", async (req, res) => {

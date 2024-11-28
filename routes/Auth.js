@@ -16,7 +16,6 @@ dotenv.config();
 
 const jwtSecret = process.env.JWT_SECRET;
 
-
 //PETICION POST REGISTRAR ADMINISTRADOR -- END POINT --VERIFICADO
 routerAuth.post("/registerAdmin", async (req, res) => {
   const { name, password, email } = req.body;

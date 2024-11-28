@@ -108,11 +108,12 @@ routesClients.delete("/eliminarCliente/:id_cliente", async (req, res) => {
 });
 
 //FILTRAR CLIENTE --VERIFICADO
-routesClients.get("/buscarCliente", async (req, res) => {
+routesClients.get("/buscarCliente/:adminId", async (req, res) => {
   const { nombre } = req.query;
+  const adminId = req.params.adminId;
 
   try {
-    const response = await busquedaCliente(nombre);
+    const response = await busquedaCliente(nombre, adminId);
     res.status(200).send({ message: "Busqueda Exitosa", response });
   } catch (error) {
     console.log("Error en la busqueda", error);

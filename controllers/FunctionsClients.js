@@ -67,12 +67,13 @@ export async function deleteClient(ID_CLIENTE) {
 }
 
 //FILTRAR CLIENTES --VERIFICADO
-export async function busquedaCliente(valor) {
+export async function busquedaCliente(valor, administradorId) {
   const [row] = await pool.query(
     `SELECT ID_CLIENTE, CEDULA, NOMBRE, TELEFONO, EMAIL, DIRECCION, FECHA_REGISTRO 
      FROM CLIENTES 
-     WHERE NOMBRE LIKE ? OR CEDULA LIKE ?`,
-    [`%${valor}%`, `%${valor}%`]
+     WHERE (NOMBRE LIKE ? OR CEDULA LIKE ?) 
+     AND ADMINISTRADOR_ID = ?`,
+    [`%${valor}%`, `%${valor}%`, administradorId]
   );
   return row;
 }
