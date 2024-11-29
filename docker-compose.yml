@@ -10,6 +10,7 @@ services:
         - ./schemaExample.sql:/data/application/schemaExample.sql
       networks:
         - app-network
+      restart: always
   app:
     build: .
     ports:
@@ -20,6 +21,7 @@ services:
       - ./uploads:/app/uploads
     networks:
       - app-network
+    restart: always
 
 networks:
   app-network:

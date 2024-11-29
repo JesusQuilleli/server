@@ -1,7 +1,7 @@
 import express from "express";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
-import cron from "node-cron";
+//import cron from "node-cron";
 import bcrypt from "bcrypt";
 import { pool } from "../helpers/index.js";
 
@@ -19,15 +19,15 @@ const transporter = nodemailer.createTransport({
  });
 
 //END - POINT RECUPERAR CONTRASEÑA --INSTALAR NODEMAILER EN EL BACKEND DEL SERVIDOR -NUBE --COMPARAR FECHAS
-cron.schedule('*/2 * * * *', async () => {
-   try {
-     // Eliminar los códigos expirados
-     await pool.query("DELETE FROM CODIGOS WHERE EXPIRACION < NOW()");
-     console.log("Códigos expirados eliminados");
-   } catch (error) {
-     console.error("Error al eliminar códigos expirados:", error);
-   }
- });
+// cron.schedule('*/2 * * * *', async () => {
+//    try {
+//      // Eliminar los códigos expirados
+//      await pool.query("DELETE FROM CODIGOS WHERE EXPIRACION < NOW()");
+//      console.log("Códigos expirados eliminados");
+//    } catch (error) {
+//      console.error("Error al eliminar códigos expirados:", error);
+//    }
+//  });
  
  routesRestorePassword.post("/enviar-codigo", async (req, res) => {
    const { email } = req.body;

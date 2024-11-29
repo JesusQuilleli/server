@@ -63,6 +63,7 @@ routesVentas.post("/procesarVenta", async (req, res) => {
       tipoPago,
       administradorId
     );
+    
     if (response) {
       // Envía solo una respuesta
       return res.status(200).send({
