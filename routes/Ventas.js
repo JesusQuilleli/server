@@ -1,5 +1,7 @@
 import express from "express";
 
+import { pool } from "../helpers/index.js";
+
 import {
   editStockProductos,
   realizarVenta,
@@ -202,6 +204,76 @@ routesVentas.delete("/eliminarVentas", async (req, res) => {
     res
       .status(500)
       .send({ message: "Error al eliminar ventas", error: error.message });
+  }
+});
+
+routesVentas.post("/addProductosVenta", async (req, res) => {
+  const { VENTA_ID, nuevaDeudaTotal, nuevaDeudaPendienteTotal, productos } = req.body;
+  let connection;
+  try {
+    // Validar los datos recibidos
+    if (!VENTA_ID || nuevaDeudaTotal == null || nuevaDeudaPendienteTotal == null || !productos) {
+      return res.status(400).json({ error: "Datos incompletos" });
+    }
+
+    // Obtener una conexión del pool
+    connection = await pool.getConnection();
+
+    // Iniciar una transacción
+    await connection.beginTransaction();
+
+    // Actualizar MONTO_TOTAL y MONTO_PENDIENTE en la tabla VENTAS
+    await connection.query(
+      `
+      UPDATE VENTAS 
+      SET MONTO_TOTAL = ?, 
+          MONTO_PENDIENTE = ? 
+      WHERE ID_VENTA = ?
+      `,
+      [nuevaDeudaTotal, nuevaDeudaPendienteTotal, VENTA_ID]
+    );
+
+    // Insertar o actualizar los productos en VENTAS_PRODUCTOS
+    const queryVentasProductos = `
+      INSERT INTO VENTAS_PRODUCTOS (VENTA_ID, PRODUCTO_ID, CANTIDAD) 
+      VALUES (?, ?, ?)
+      ON DUPLICATE KEY UPDATE
+        CANTIDAD = CANTIDAD + VALUES(CANTIDAD)
+    `;
+
+    // Descontar la cantidad de productos del inventario
+    const queryInventario = `
+      UPDATE PRODUCTOS 
+      SET CANTIDAD = CANTIDAD - ? 
+      WHERE ID_PRODUCTO = ?
+    `;
+
+    // Recorrer los productos y realizar las dos operaciones: insertar en VENTAS_PRODUCTOS y actualizar en PRODUCTOS
+    for (const { ID_PRODUCTO, CANTIDAD } of productos) {
+      // Insertar o actualizar en VENTAS_PRODUCTOS
+      await connection.query(queryVentasProductos, [VENTA_ID, ID_PRODUCTO, CANTIDAD]);
+
+      // Descontar del inventario
+      await connection.query(queryInventario, [CANTIDAD, ID_PRODUCTO]);
+    }
+
+    // Confirmar los cambios
+    await connection.commit();
+
+    // Enviar respuesta al cliente
+    res.status(200).json({ message: "Venta y productos actualizados correctamente, inventario descontado." });
+  } catch (error) {
+    console.error("Error al actualizar la venta:", error.message);
+    if (connection) {
+      // Revertir cambios en caso de error
+      await connection.rollback();
+    }
+    res.status(500).json({ error: "Error en el servidor" });
+  } finally {
+    if (connection) {
+      // Liberar la conexión de vuelta al pool
+      connection.release();
+    }
   }
 });
 

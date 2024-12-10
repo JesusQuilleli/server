@@ -1,4 +1,4 @@
-import { pool } from "./../helpers/index.js"
+import { pool } from "./../helpers/index.js";
 
 //RESTAR PRODUCTO SEGUN LA VENTA --VERIFICADO
 export async function editStockProductos(productos) {
@@ -12,9 +12,9 @@ export async function editStockProductos(productos) {
     const casos = productos
       .map(
         (p) =>
-          `WHEN ID_PRODUCTO = ${pool.escape(p.ID_PRODUCTO)} THEN CANTIDAD - ${pool.escape(
-            p.CANTIDAD
-          )}`
+          `WHEN ID_PRODUCTO = ${pool.escape(
+            p.ID_PRODUCTO
+          )} THEN CANTIDAD - ${pool.escape(p.CANTIDAD)}`
       )
       .join(" ");
 
@@ -80,7 +80,9 @@ export async function productosVendidos(VENTA_ID, productos) {
     const values = productos
       .map(
         (p) =>
-          `(${pool.escape(VENTA_ID)}, ${pool.escape(p.ID_PRODUCTO)}, ${pool.escape(p.CANTIDAD)})`
+          `(${pool.escape(VENTA_ID)}, ${pool.escape(
+            p.ID_PRODUCTO
+          )}, ${pool.escape(p.CANTIDAD)})`
       )
       .join(", ");
 
@@ -105,7 +107,7 @@ export async function productosVendidos(VENTA_ID, productos) {
 //INFORMACION RESUMIDA VENTA --VERIFICADO
 export async function infoResumidaVenta(ID_ADMINISTRADOR) {
   const [result] = await pool.query(
-    "SELECT v.ID_VENTA, c.NOMBRE AS CLIENTE, c.TELEFONO, v.FECHA_VENTA AS FECHA, v.ESTADO_PAGO, v.MONTO_PENDIENTE, v.MONTO_TOTAL FROM VENTAS v JOIN CLIENTES c ON v.CLIENTE_ID = c.ID_CLIENTE WHERE v.ADMINISTRADOR_ID = ?",
+    "SELECT v.ID_VENTA, c.ID_CLIENTE AS CLIENTE_ID, c.NOMBRE AS CLIENTE, c.TELEFONO, v.FECHA_VENTA AS FECHA, v.ESTADO_PAGO, v.MONTO_PENDIENTE, v.MONTO_TOTAL FROM VENTAS v JOIN CLIENTES c ON v.CLIENTE_ID = c.ID_CLIENTE WHERE v.ADMINISTRADOR_ID = ?",
     [ID_ADMINISTRADOR]
   );
 
@@ -114,29 +116,36 @@ export async function infoResumidaVenta(ID_ADMINISTRADOR) {
   } else {
     return null;
   }
-};
+}
 
 //INFORMACION RESUMIDA POR CEDULA DEL CLIENTE --VERIFICADO
-export async function infoResumidaVentaPorCedula(ID_ADMINISTRADOR, cedulaCliente) {
+export async function infoResumidaVentaPorCedula(
+  ID_ADMINISTRADOR,
+  cedulaCliente
+) {
   const [result] = await pool.query(
-    "SELECT v.ID_VENTA, c.NOMBRE AS CLIENTE, v.FECHA_VENTA AS FECHA, v.ESTADO_PAGO " +
-    "FROM VENTAS v " +
-    "JOIN CLIENTES c ON v.CLIENTE_ID = c.ID_CLIENTE " +
-    "WHERE v.ADMINISTRADOR_ID = ? AND c.CEDULA LIKE ?",
-    [ID_ADMINISTRADOR, `%${cedulaCliente}%`] 
+    "SELECT v.ID_VENTA, c.ID_CLIENTE AS CLIENTE_ID, c.NOMBRE AS CLIENTE, v.FECHA_VENTA AS FECHA, v.ESTADO_PAGO " +
+      "FROM VENTAS v " +
+      "JOIN CLIENTES c ON v.CLIENTE_ID = c.ID_CLIENTE " +
+      "WHERE v.ADMINISTRADOR_ID = ? AND c.CEDULA LIKE ?",
+    [ID_ADMINISTRADOR, `%${cedulaCliente}%`]
   );
 
   if (result && result.length > 0) {
     return result;
   } else {
-    return [];  // Si no se encuentra ninguna venta con la cédula proporcionada
+    return []; // Si no se encuentra ninguna venta con la cédula proporcionada
   }
 }
 
 // INFORMACION RESUMIDA VENTA CON RANGO DE FECHAS --VERIFICADO
-export async function infoResumidaVentaPorFechas(ID_ADMINISTRADOR, fechaInicio, fechaFin) {
+export async function infoResumidaVentaPorFechas(
+  ID_ADMINISTRADOR,
+  fechaInicio,
+  fechaFin
+) {
   const [result] = await pool.query(
-    `SELECT v.ID_VENTA, c.NOMBRE AS CLIENTE, v.FECHA_VENTA AS FECHA, v.ESTADO_PAGO
+    `SELECT v.ID_VENTA, c.NOMBRE AS CLIENTE, v.FECHA_VENTA AS FECHA, v.ESTADO_PAGO, v.MONTO_PENDIENTE, v.MONTO_TOTAL
      FROM VENTAS v
      JOIN CLIENTES c ON v.CLIENTE_ID = c.ID_CLIENTE
      WHERE v.ADMINISTRADOR_ID = ?
@@ -149,7 +158,7 @@ export async function infoResumidaVentaPorFechas(ID_ADMINISTRADOR, fechaInicio, 
   } else {
     return null;
   }
-};
+}
 
 //INFORMACION DETALLADA VENTA
 export async function infoDetallada(ID_ADMIN, ID_VENTA) {
@@ -194,7 +203,7 @@ export async function infoDetallada(ID_ADMIN, ID_VENTA) {
 //VER VENTAS POR ESTADO DE PAGO --VERIFICADO
 export async function ventasEstado_Pago(ID_ADMINISTRADOR, ESTADO_PAGO) {
   const [result] = await pool.query(
-    "SELECT v.ID_VENTA, c.NOMBRE AS CLIENTE, v.FECHA_VENTA AS FECHA, v.ESTADO_PAGO FROM VENTAS v JOIN CLIENTES c ON v.CLIENTE_ID = c.ID_CLIENTE WHERE v.ADMINISTRADOR_ID = ? AND v.ESTADO_PAGO = ?",
+    "SELECT v.ID_VENTA, c.ID_CLIENTE AS CLIENTE_ID, c.NOMBRE AS CLIENTE, v.FECHA_VENTA AS FECHA, v.ESTADO_PAGO, v.MONTO_PENDIENTE, v.MONTO_TOTAL FROM VENTAS v JOIN CLIENTES c ON v.CLIENTE_ID = c.ID_CLIENTE WHERE v.ADMINISTRADOR_ID = ? AND v.ESTADO_PAGO = ?",
     [ID_ADMINISTRADOR, ESTADO_PAGO]
   );
 
@@ -203,7 +212,7 @@ export async function ventasEstado_Pago(ID_ADMINISTRADOR, ESTADO_PAGO) {
   } else {
     return null;
   }
-};
+}
 
 //ELIMINAR MULTIPLES VENTAS --VERIFICADO
 export async function deleteVentas(ids) {
