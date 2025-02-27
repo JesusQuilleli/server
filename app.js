@@ -28,6 +28,7 @@ const numCPUs = os.cpus().length; // Número de núcleos disponibles
 if (cluster.isPrimary) {
   console.log(`Master ${process.pid} está corriendo`);
 
+  // Crear un worker por cada núcleo de CPU
   for (let i = 0; i < numCPUs; i++) {
     cluster.fork();
   }
@@ -37,8 +38,8 @@ if (cluster.isPrimary) {
     cluster.fork();
   });
 
-  // Termina la ejecución aquí, para que el código del servidor no se ejecute en el proceso principal.
-  return;
+  // Termina el proceso principal (master) después de crear los workers
+  process.exit();
 }
 
 //IMAGENES
@@ -98,3 +99,4 @@ app.get("/saludo", (req, res) => {
 app.listen(PORT, () => {
   console.log("Server running on port 8800");
 });
+
