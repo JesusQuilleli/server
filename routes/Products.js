@@ -3,6 +3,8 @@ import sharp from "sharp";
 import AWS from "aws-sdk";
 import dotenv from "dotenv";
 
+import { Worker } from "worker_threads";
+
 import { v4 as uuidv4 } from "uuid";
 
 import {
@@ -113,54 +115,64 @@ routerProducts.get("/buscarProductos/:adminId", async (req, res) => {
   }
 });
 
+// Función para procesar la imagen con un worker
+function procesarImagenWorker(imagenBuffer) {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(path.resolve(__dirname, "imageWorker.js"));
+
+    worker.postMessage(imagenBuffer);
+
+    worker.on("message", (bufferImagen) => {
+      if (bufferImagen.error) {
+        reject(bufferImagen.error);
+      } else {
+        resolve(bufferImagen);
+      }
+    });
+
+    worker.on("error", (error) => reject(error));
+    worker.on("exit", (code) => {
+      if (code !== 0) {
+        reject(new Error(`Worker finalizó con código ${code}`));
+      }
+    });
+  });
+}
+
 //CON S3
 routerProducts.post("/registerProduct", async (req, res) => {
-  const {
-    categoria,
-    nombre,
-    descripcion,
-    precioCompra,
-    precio,
-    cantidad,
-    adminId,
-  } = req.body;
-
-  console.log(req.body);
-
+  const { categoria, nombre, descripcion, precioCompra, precio, cantidad, adminId } = req.body;
   const imagen = req.files?.imagen;
-
-  console.log(imagen);
 
   try {
     let imagenURL = null;
 
     if (imagen) {
-      // Genera un nombre único para la imagen
       const uniqueId = uuidv4();
       const nombreUnico = `${uniqueId}.webp`;
 
-      // Convierte la imagen a formato WebP usando Sharp
-      const bufferImagen = await sharp(imagen.data)
-        .webp({ quality: 80 }) // Puedes ajustar la calidad
-        .toBuffer(); // Convierte la imagen a un buffer
+      // Procesa la imagen con un worker
+      const bufferImagen = await procesarImagenWorker(imagen.data);
 
-      // Sube la imagen a S3
+      if (!bufferImagen) {
+        return res.status(500).send({ message: "Error procesando la imagen." });
+      }
+
+      // Parámetros de subida a S3
       const params = {
-        Bucket: BUCKET_NAME, // Tu nombre de bucket en S3
-        Key: nombreUnico, // El nombre del archivo que se guardará
-        Body: bufferImagen, // El archivo de imagen como buffer
-        ContentType: "image/webp", // Tipo de contenido
-        ACL: "public-read", // El archivo será público
+        Bucket: BUCKET_NAME,
+        Key: nombreUnico,
+        Body: bufferImagen,
+        ContentType: "image/webp",
+        ACL: "public-read",
       };
 
       // Sube el archivo a S3
       const data = await s3.upload(params).promise();
-
-      console.log("Retorno de direccion de la imagen: ", data);
-
-      imagenURL = data.Location; // URL pública de la imagen subida
+      imagenURL = data.Location;
     }
 
+    // Guarda el producto en la base de datos
     const resultado = await insertProducts(
       categoria,
       nombre,
@@ -172,14 +184,10 @@ routerProducts.post("/registerProduct", async (req, res) => {
       adminId
     );
 
-    res
-      .status(200)
-      .send({ message: "Producto Registrado Correctamente", resultado });
+    res.status(200).send({ message: "Producto Registrado Correctamente", resultado });
   } catch (error) {
     console.error("Error al Registrar Producto", error);
-    res
-      .status(500)
-      .send({ message: "Error al registrar producto.", error: error.message });
+    res.status(500).send({ message: "Error al registrar producto.", error: error.message });
   }
 });
 
