@@ -123,7 +123,7 @@ routerProducts.get("/buscarProductos/:adminId", async (req, res) => {
   function procesarImagenWorker(imagenBuffer) {
     return new Promise((resolve, reject) => {
       // Crear el worker
-      const worker = new Worker(path.resolve(__dirname, "worker", "imageWorker.js"));
+      const worker = new Worker(path.resolve(__dirname, "../worker", "imageWorker.js"));
 
       // Enviar la imagen al worker
       worker.postMessage(imagenBuffer);
