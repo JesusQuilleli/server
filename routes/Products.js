@@ -2,7 +2,7 @@ import express from "express";
 import sharp from "sharp";
 import AWS from "aws-sdk";
 import dotenv from "dotenv";
-
+import path from "path";
 import { Worker } from "worker_threads";
 
 import { v4 as uuidv4 } from "uuid";
