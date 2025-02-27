@@ -115,22 +115,33 @@ routerProducts.get("/buscarProductos/:adminId", async (req, res) => {
   }
 });
 
-// Función para procesar la imagen con un worker
 function procesarImagenWorker(imagenBuffer) {
   return new Promise((resolve, reject) => {
+    // Crear el worker
     const worker = new Worker(path.resolve(__dirname, "imageWorker.js"));
 
+    // Enviar la imagen al worker
     worker.postMessage(imagenBuffer);
 
+    // Escuchar el mensaje de respuesta del worker
     worker.on("message", (bufferImagen) => {
       if (bufferImagen.error) {
-        reject(bufferImagen.error);
+        reject(new Error(bufferImagen.error)); // Mejor manejo del error
       } else {
         resolve(bufferImagen);
       }
+
+      // Cerrar el worker después de procesar la imagen
+      worker.terminate();
     });
 
-    worker.on("error", (error) => reject(error));
+    // Manejar errores del worker
+    worker.on("error", (error) => {
+      reject(error);
+      worker.terminate(); // Asegurar que el worker se cierra en caso de error
+    });
+
+    // Detectar si el worker finaliza inesperadamente
     worker.on("exit", (code) => {
       if (code !== 0) {
         reject(new Error(`Worker finalizó con código ${code}`));
