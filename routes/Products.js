@@ -2,8 +2,12 @@ import express from "express";
 import sharp from "sharp";
 import AWS from "aws-sdk";
 import dotenv from "dotenv";
-import path from "path";
+import { dirname } from "path";
+import { fileURLToPath } from "url";
 import { Worker } from "worker_threads";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 import { v4 as uuidv4 } from "uuid";
 
@@ -152,7 +156,15 @@ function procesarImagenWorker(imagenBuffer) {
 
 //CON S3
 routerProducts.post("/registerProduct", async (req, res) => {
-  const { categoria, nombre, descripcion, precioCompra, precio, cantidad, adminId } = req.body;
+  const {
+    categoria,
+    nombre,
+    descripcion,
+    precioCompra,
+    precio,
+    cantidad,
+    adminId,
+  } = req.body;
   const imagen = req.files?.imagen;
 
   try {
@@ -195,10 +207,14 @@ routerProducts.post("/registerProduct", async (req, res) => {
       adminId
     );
 
-    res.status(200).send({ message: "Producto Registrado Correctamente", resultado });
+    res
+      .status(200)
+      .send({ message: "Producto Registrado Correctamente", resultado });
   } catch (error) {
     console.error("Error al Registrar Producto", error);
-    res.status(500).send({ message: "Error al registrar producto.", error: error.message });
+    res
+      .status(500)
+      .send({ message: "Error al registrar producto.", error: error.message });
   }
 });
 
