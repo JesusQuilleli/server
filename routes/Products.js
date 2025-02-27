@@ -2,6 +2,7 @@ import express from "express";
 import sharp from "sharp";
 import AWS from "aws-sdk";
 import dotenv from "dotenv";
+import path from 'path';
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import { Worker } from "worker_threads";
@@ -119,40 +120,40 @@ routerProducts.get("/buscarProductos/:adminId", async (req, res) => {
   }
 });
 
-function procesarImagenWorker(imagenBuffer) {
-  return new Promise((resolve, reject) => {
-    // Crear el worker
-    const worker = new Worker(path.resolve(__dirname, "imageWorker.js"));
+  function procesarImagenWorker(imagenBuffer) {
+    return new Promise((resolve, reject) => {
+      // Crear el worker
+      const worker = new Worker(path.resolve(__dirname, "imageWorker.js"));
 
-    // Enviar la imagen al worker
-    worker.postMessage(imagenBuffer);
+      // Enviar la imagen al worker
+      worker.postMessage(imagenBuffer);
 
-    // Escuchar el mensaje de respuesta del worker
-    worker.on("message", (bufferImagen) => {
-      if (bufferImagen.error) {
-        reject(new Error(bufferImagen.error)); // Mejor manejo del error
-      } else {
-        resolve(bufferImagen);
-      }
+      // Escuchar el mensaje de respuesta del worker
+      worker.on("message", (bufferImagen) => {
+        if (bufferImagen.error) {
+          reject(new Error(bufferImagen.error)); // Mejor manejo del error
+        } else {
+          resolve(bufferImagen);
+        }
 
-      // Cerrar el worker después de procesar la imagen
-      worker.terminate();
+        // Cerrar el worker después de procesar la imagen
+        worker.terminate();
+      });
+
+      // Manejar errores del worker
+      worker.on("error", (error) => {
+        reject(error);
+        worker.terminate(); // Asegurar que el worker se cierra en caso de error
+      });
+
+      // Detectar si el worker finaliza inesperadamente
+      worker.on("exit", (code) => {
+        if (code !== 0) {
+          reject(new Error(`Worker finalizó con código ${code}`));
+        }
+      });
     });
-
-    // Manejar errores del worker
-    worker.on("error", (error) => {
-      reject(error);
-      worker.terminate(); // Asegurar que el worker se cierra en caso de error
-    });
-
-    // Detectar si el worker finaliza inesperadamente
-    worker.on("exit", (code) => {
-      if (code !== 0) {
-        reject(new Error(`Worker finalizó con código ${code}`));
-      }
-    });
-  });
-}
+  }
 
 //CON S3
 routerProducts.post("/registerProduct", async (req, res) => {
