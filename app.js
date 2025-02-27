@@ -1,7 +1,6 @@
 import express from "express";
 import fileUpload from "express-fileupload";
 import cors from "cors";
-import cluster from "cluster";
 import os from "os";
 
 import { fileURLToPath } from "url";
@@ -21,26 +20,6 @@ import { routesDevoluciones } from "./routes/Devoluciones.js";
 
 //PUERTO DESDE EL .ENV
 const PORT = process.env.MYSQLDB_PORT_NODE;
-
-const numCPUs = os.cpus().length; // Número de núcleos disponibles
-
-// Si es el proceso principal, crea workers y finaliza la ejecución
-if (cluster.isPrimary) {
-  console.log(`Master ${process.pid} está corriendo`);
-
-  // Crear un worker por cada núcleo de CPU
-  for (let i = 0; i < numCPUs; i++) {
-    cluster.fork();
-  }
-
-  cluster.on("exit", (worker) => {
-    console.log(`Worker ${worker.process.pid} murió, creando uno nuevo...`);
-    cluster.fork();
-  });
-
-  // Termina el proceso principal (master) después de crear los workers
-  process.exit();
-}
 
 //IMAGENES
 const __filename = fileURLToPath(import.meta.url);
